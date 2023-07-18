@@ -1,1 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
+.leaflet-container .leaflet-control-attribution.leaflet-control {
+    background-image: url(/assets/images/layers.png);
+  }
+  .leaflet-container .leaflet-control-zoom-in, .leaflet-container .leaflet-control-zoom-out {
+    background-image: url(/assets/images/layers.png);
+  }

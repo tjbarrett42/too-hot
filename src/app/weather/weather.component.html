@@ -1,0 +1,14 @@
+<form [formGroup]="weatherForm" (ngSubmit)="onSubmit()">
+    <label>
+      Temperature:
+      <input type="number" formControlName="temperature">
+    </label>
+    <label>
+      Humidity:
+      <input type="number" formControlName="humidity">
+    </label>
+    <button type="submit">Submit</button>
+  </form>
+  
+  <div #map style="height: 400px;"></div>
+  
