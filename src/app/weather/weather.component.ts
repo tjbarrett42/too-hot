@@ -46,19 +46,38 @@ interface WeatherData {
   utc_offset_seconds: number;
 }
 
+interface MapElement {
+  data: WeatherData;
+  element: L.Rectangle | L.Marker;
+}
+
+interface LatLngElement {
+  latLng: L.LatLng;
+  element: L.Rectangle | L.Marker;
+}
+
 @Component({
   selector: 'app-weather',
   templateUrl: './weather.component.html',
   styleUrls: ['./weather.component.scss']
 })
-export class WeatherComponent implements OnInit, AfterViewInit {
+export class WeatherComponent implements OnInit {
   @ViewChild('map') mapContainer!: ElementRef;
   private map!: L.Map;
   private markers: { data: WeatherData, marker: L.Marker }[] = [];
   weatherForm: FormGroup;
   userLocation: Location = null!;
-  pointsToCheck: Location[] = [];
+  pointsToCheck: L.Point[] = [];
   weatherData: WeatherData[] = [];
+  private elements: MapElement[] = [];
+  private latLngElements: LatLngElement[] = [];
+  private distance: number = 100  ;
+  private initialZoomLevel: number | null = null;
+  maxHours: number = 168; // total hours in a week
+  currentHour: number = 0;
+  forecastStart: Date = new Date();
+
+  
 
   constructor(private formBuilder: FormBuilder, private http: HttpClient) {
     this.weatherForm = this.formBuilder.group({
@@ -70,48 +89,78 @@ export class WeatherComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     navigator.geolocation.getCurrentPosition((position) => {
       this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-      this.calculatePoints();
+      // this.calculatePoints();
       this.initMap(); // Init the map here after the location is set
-      this.fetchWeatherData(); // Fetch the data after the map is initialized
+      // this.fetchWeatherData(); // Fetch the data after the map is initialized
     });
   }
 
-  ngAfterViewInit() {
-  }
-
   initMap() {
-    this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 13);
-    setTimeout(() => {
-      this.map.invalidateSize();
-  }, 0);
+    this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
+    this.initialZoomLevel = this.map.getZoom();
+
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: 'Map data © OpenStreetMap contributors'
     }).addTo(this.map);
+  
+    this.map.whenReady(() => {
+      this.calculatePoints();
+    });
+  
+    setTimeout(() => {
+      this.map.invalidateSize();
+    }, 0);
   }
+  
 
   calculatePoints() {
-    const milesPerDegreeLatitude = 69.172;
-    const milesPerDegreeLongitude = Math.cos(this.userLocation.latitude * Math.PI / 180) * 69.172;
-    const milesAway = 20;
-    const degreesLatitude = milesAway / milesPerDegreeLatitude;
-    const degreesLongitude = milesAway / milesPerDegreeLongitude;
-
-    this.pointsToCheck = [
-      {latitude: this.userLocation.latitude, longitude: this.userLocation.longitude - degreesLongitude}, // west
-      {latitude: this.userLocation.latitude + degreesLatitude, longitude: this.userLocation.longitude}, // north
-      {latitude: this.userLocation.latitude, longitude: this.userLocation.longitude + degreesLongitude}, // east
-      {latitude: this.userLocation.latitude - degreesLatitude, longitude: this.userLocation.longitude}, // south
-      {latitude: this.userLocation.latitude, longitude: this.userLocation.longitude} // current
-    ];
+    console.log('distance in calculatePoints:', this.distance);
+    this.distance = 100;
+    this.pointsToCheck = [];
+    this.pointsToCheck = this.generateGrid(this.userLocation, 9, this.distance);
+  
+    this.fetchWeatherData(); // Fetch the data after calculating points
   }
+  
+
+  generateGrid(center: Location, gridSize: number, distance: number): L.Point[] {
+    const centerPoint = this.map.latLngToContainerPoint([center.latitude, center.longitude]);
+    const points: L.Point[] = [];
+
+    // Calculate the offset to center the grid on the center point
+    const offset = ((gridSize / 2) * distance) - (distance / 2);
+
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const point = L.point(
+          centerPoint.x - offset + i * distance, // Subtract the offset and add the current position
+          centerPoint.y - offset + j * distance  // Subtract the offset and add the current position
+        );
+        points.push(point);
+      }
+    }
+
+    console.log('points ', points);
+    return points;
+}
+
+
+  
 
   fetchWeatherData() {
+    console.log('fetchWeatherData', this.pointsToCheck.length);
+
     let weatherObservables: Observable<WeatherData>[] = [];
 
     this.pointsToCheck.forEach((point) => {
+      const latLng = this.map.containerPointToLatLng(point);
+
+      this.latLngElements.push({ latLng, element: null! });
+
       let weatherObservable = this.http.get<WeatherData>(
-        `https://api.open-meteo.com/v1/forecast?latitude=${point.latitude}&longitude=${point.longitude}&hourly=temperature_2m,relativehumidity_2m&temperature_unit=fahrenheit`
+        `https://api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m&temperature_unit=fahrenheit`
       );
       weatherObservables.push(weatherObservable);
     });
@@ -119,63 +168,143 @@ export class WeatherComponent implements OnInit, AfterViewInit {
     forkJoin(weatherObservables).subscribe((weatherDataArray) => {
       console.log(weatherDataArray);
       this.weatherData = weatherDataArray;
+      console.log('weatherDataArray.length', weatherDataArray.length);
+
       this.displayLocations();
     });
-
+  }
+  
+  updateMap() {
+    this.removeLocations();
     
   }
 
-  displayLocations() {
-  this.weatherData.forEach((data: WeatherData) => {
-    const lat = data.latitude;
-    const lon = data.longitude;
-
-    const temperature = data.hourly.temperature_2m[0];
-    const humidity = data.hourly.relativehumidity_2m[0];
-
-    const leafletIcon = L.icon({
-      iconUrl: 'leaflet/marker-icon.png',
-      shadowUrl: 'leaflet/marker-shadow.png',
+removeLocations() {
+    this.elements.forEach(({ element }) => {
+        this.map.removeLayer(element);
     });
-
-    const marker = L.marker([lat, lon], { icon: leafletIcon })
-      .bindPopup(`Location: ${lat}, ${lon}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
-      .addTo(this.map);
-
-    this.markers.push({ data: data, marker: marker });
-  });
-
-  // code to adjust map bounds
-  const group = new L.FeatureGroup(this.markers.map(m => m.marker));
-  this.map.fitBounds(group.getBounds());
+    this.elements = [];
+    this.latLngElements = [];
 }
 
-onSubmit() {
-  if (this.weatherForm.valid) {
-    console.log(this.weatherForm.value);
+displayLocations() {
+  console.log('displayLocations', this.weatherData.length, this.latLngElements.length);
 
-    const submittedTemperature = this.weatherForm.value.temperature;
+  console.log('zoom level in displayLocations:', this.map.getZoom());
 
-    let closestMarkerData: { data: WeatherData; marker: L.Marker } | null = null;
-    let minDifference: number = Infinity;
+  console.log('distance in displayLocations:', this.distance);
+  const submittedTemperature = this.weatherForm.value.temperature;
 
-    this.markers.forEach(({ data, marker }) => {
-      const temperature = data.hourly.temperature_2m[0];
+  const currentZoomLevel = this.map.getZoom();
+  const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
+
+  const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
+
+  this.weatherData.forEach((data: WeatherData, index: number) => {
+      const latLng = this.latLngElements[index].latLng;
+
+
+      const temperature = data.hourly.temperature_2m[this.currentHour]; // updated this line
+      const humidity = data.hourly.relativehumidity_2m[this.currentHour]; // updated this line
 
       const difference = Math.abs(temperature - submittedTemperature);
-      if (difference < minDifference) {
-        minDifference = difference;
-        closestMarkerData = { data, marker };
+      const color = difference <= 5 ? 'green' : 'red';
+
+      const centerPoint = this.map.latLngToContainerPoint(latLng);
+
+      // Calculate the pixel coordinates of the corners of the rectangle
+      const northWestPoint = L.point(centerPoint.x - halfDistance, centerPoint.y - halfDistance);
+      const southEastPoint = L.point(centerPoint.x + halfDistance, centerPoint.y + halfDistance);
+
+      // Convert these pixel coordinates back to lat-lng
+      const northWestLatLng = this.map.containerPointToLatLng(northWestPoint);
+      const southEastLatLng = this.map.containerPointToLatLng(southEastPoint);
+
+      // Create bounds for the rectangle
+      const bounds: L.LatLngBoundsExpression = [[northWestLatLng.lat, northWestLatLng.lng], [southEastLatLng.lat, southEastLatLng.lng]];
+
+      const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5 })
+      .bindPopup(`Location: ${latLng.lat}, ${latLng.lng}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
+      .addTo(this.map);
+
+      this.elements.push({ data: data, element: rectangle });
+  });
+
+  // Set the center of the map to the user's location
+  this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
+}
+
+  onSubmit() {
+    if (this.weatherForm.valid) {
+      console.log(this.weatherForm.value);
+  
+      const submittedTemperature = this.weatherForm.value.temperature;
+  
+      let closestElementData: MapElement | null = null;
+      let minDifference: number = Infinity;
+  
+      this.elements.forEach(({ data, element }) => {
+        const temperature = data.hourly.temperature_2m[0];
+  
+        const difference = Math.abs(temperature - submittedTemperature);
+        if (difference < minDifference) {
+          minDifference = difference;
+          closestElementData = { data, element };
+        }
+        
+        // Calculate the color according to the new submitted temperature
+        const newColor = Math.abs(difference) <= 5 ? 'green' : 'red';
+        
+        // Check if the element is a Rectangle and set the new color
+        if (element instanceof L.Rectangle) {
+          element.setStyle({ color: newColor });
+        }
+      });
+  
+      // Check if closestElementData has been assigned and is not null
+      if (closestElementData) {
+        (closestElementData['element'] as L.Rectangle).openPopup();
+      }
+    }
+  }
+  
+  updateSliderValue(event: any) {
+    this.currentHour = Number(event.target.value);
+    this.updateWeatherDataOnMap();
+  }
+
+  updateWeatherDataOnMap() {
+    const submittedTemperature = this.weatherForm.value.temperature;
+  
+    this.elements.forEach(({ data, element }) => {
+      const temperature = data.hourly.temperature_2m[this.currentHour];
+      const humidity = data.hourly.relativehumidity_2m[this.currentHour];
+  
+      const difference = Math.abs(temperature - submittedTemperature);
+      const color = difference <= 5 ? 'green' : 'red';
+  
+      if (element instanceof L.Rectangle) {
+        element.setStyle({ color });
+        element.setPopupContent(
+          `Location: ${data.latitude}, ${data.longitude}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`
+        );
       }
     });
-
-    // Check if closestMarkerData has been assigned and is not null
-    if (closestMarkerData) {
-      (closestMarkerData['marker'] as L.Marker).openPopup();
-    }
-    
   }
-}
+  
+
+
+  getCurrentDayAndHour(): string {
+    // Create a new date that is the forecast start plus the number of hours
+    let date = new Date(this.forecastStart.getTime() + this.currentHour * 60 * 60 * 1000);
+
+    // Format the date
+    let day = date.toLocaleString('default', { weekday: 'long' }); // e.g. Monday
+    let hour = date.getHours();
+
+    return `${day}, ${hour}:00`;
+  }
+
 
   
   
