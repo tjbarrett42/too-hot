@@ -1,0 +1,15 @@
+<form [formGroup]="preferenceForm">
+    <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i=index">
+      <div [formGroupName]="i">
+        <select formControlName="attribute">
+          <option value="temperature">Temperature</option>
+          <option value="humidity">Humidity</option>
+          <!-- add options here as necessary -->
+        </select>
+        <input formControlName="value" type="number">
+        <button (click)="removePreference(i)">Remove</button>
+      </div>
+    </div>
+    <button (click)="addPreference()">Add Preference</button>
+  </form>
+  

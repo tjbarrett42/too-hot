@@ -117,7 +117,7 @@ export class WeatherComponent implements OnInit {
 
   calculatePoints() {
     console.log('distance in calculatePoints:', this.distance);
-    this.distance = 100;
+    this.distance = 10;
     this.pointsToCheck = [];
     this.pointsToCheck = this.generateGrid(this.userLocation, 9, this.distance);
   
@@ -207,8 +207,13 @@ displayLocations() {
       const temperature = data.hourly.temperature_2m[this.currentHour]; // updated this line
       const humidity = data.hourly.relativehumidity_2m[this.currentHour]; // updated this line
 
-      const difference = Math.abs(temperature - submittedTemperature);
-      const color = difference <= 5 ? 'green' : 'red';
+      const difference = temperature - submittedTemperature;
+      let color = 'green'; // default to green
+      if (difference > 5) {
+        color = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
+      } else if (difference < -5) {
+        color = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
+      }
 
       const centerPoint = this.map.latLngToContainerPoint(latLng);
 
@@ -234,39 +239,44 @@ displayLocations() {
   this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
 }
 
-  onSubmit() {
-    if (this.weatherForm.valid) {
-      console.log(this.weatherForm.value);
-  
-      const submittedTemperature = this.weatherForm.value.temperature;
-  
-      let closestElementData: MapElement | null = null;
-      let minDifference: number = Infinity;
-  
-      this.elements.forEach(({ data, element }) => {
-        const temperature = data.hourly.temperature_2m[0];
-  
-        const difference = Math.abs(temperature - submittedTemperature);
-        if (difference < minDifference) {
-          minDifference = difference;
-          closestElementData = { data, element };
-        }
-        
-        // Calculate the color according to the new submitted temperature
-        const newColor = Math.abs(difference) <= 5 ? 'green' : 'red';
-        
-        // Check if the element is a Rectangle and set the new color
-        if (element instanceof L.Rectangle) {
-          element.setStyle({ color: newColor });
-        }
-      });
-  
-      // Check if closestElementData has been assigned and is not null
-      if (closestElementData) {
-        (closestElementData['element'] as L.Rectangle).openPopup();
+onSubmit() {
+  if (this.weatherForm.valid) {
+    console.log(this.weatherForm.value);
+
+    const submittedTemperature = this.weatherForm.value.temperature;
+
+    let closestElementData: MapElement | null = null;
+    let minDifference: number = Infinity;
+
+    this.elements.forEach(({ data, element }) => {
+      const temperature = data.hourly.temperature_2m[0];
+
+      const difference = temperature - submittedTemperature;
+      let newColor = 'green'; // default to green
+      if (difference > 5) {
+        newColor = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
+      } else if (difference < -5) {
+        newColor = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
       }
+      
+      if (Math.abs(difference) < minDifference) {
+        minDifference = Math.abs(difference);
+        closestElementData = { data, element };
+      }
+
+      // Check if the element is a Rectangle and set the new color
+      if (element instanceof L.Rectangle) {
+        element.setStyle({ color: newColor });
+      }
+    });
+
+    // Check if closestElementData has been assigned and is not null
+    if (closestElementData) {
+      (closestElementData['element'] as L.Rectangle).openPopup();
     }
   }
+}
+
   
   updateSliderValue(event: any) {
     this.currentHour = Number(event.target.value);
@@ -280,11 +290,16 @@ displayLocations() {
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
   
-      const difference = Math.abs(temperature - submittedTemperature);
-      const color = difference <= 5 ? 'green' : 'red';
+      const difference = temperature - submittedTemperature;
+      let newColor = 'green'; // default to green
+      if (difference > 5) {
+        newColor = 'orange'; // if the temperature is more than 5 degrees higher, make it yellow
+      } else if (difference < -5) {
+        newColor = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
+      }
   
       if (element instanceof L.Rectangle) {
-        element.setStyle({ color });
+        element.setStyle({ color: newColor });
         element.setPopupContent(
           `Location: ${data.latitude}, ${data.longitude}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`
         );

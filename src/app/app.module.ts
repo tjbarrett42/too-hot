@@ -7,11 +7,13 @@ import { FormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
 import { WeatherComponent } from './weather/weather.component';
+import { PreferencesComponent } from './preferences/preferences.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    WeatherComponent
+    WeatherComponent,
+    PreferencesComponent
   ],
   imports: [
     BrowserModule, 
