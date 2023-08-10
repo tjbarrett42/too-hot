@@ -1,5 +1,5 @@
 <div>
   <h1>Weather Preference App</h1>
-  <app-preferences></app-preferences>
+  <app-preferences (preferencesChanged)="updatePreferences($event)"></app-preferences>
   <app-weather></app-weather>
 </div>

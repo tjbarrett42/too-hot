@@ -22,10 +22,21 @@ export class PreferencesComponent {
   }
 
   newPreference(): FormGroup {
-    return this.fb.group({
+    const newPref = this.fb.group({
       attribute: '',
       value: '',
-    })
+      symbol: '',
+      precisionValue: ''
+    });
+
+    this.preferences.valueChanges.subscribe((value) => {
+      this.preferencesChanged.emit(this.preferences);
+      // console.log(this.preferences);
+      // this.preferencesChanged.emit([value.attribute, value]);
+      // console.log('valuechanges: ',[value.attribute, value]);
+    });
+
+    return newPref;
   }
 
   addPreference() {
@@ -37,6 +48,10 @@ export class PreferencesComponent {
   removePreference(i: number) {
     this.preferences.removeAt(i);
     this.preferencesChanged.emit(this.preferences.value);
+
   }
-  
+
+  changePreference() {
+    this.preferencesChanged.emit(this.preferences.value);
+  }
 }

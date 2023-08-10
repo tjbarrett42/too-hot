@@ -1,22 +1,9 @@
-<form [formGroup]="weatherForm" (ngSubmit)="onSubmit()">
-    <label>
-      Temperature:
-      <input type="number" formControlName="temperature">
-    </label>
-    <label>
-      Humidity:
-      <input type="number" formControlName="humidity">
-    </label>
-    <button type="submit">Submit</button>
-  </form>
-
-  <div class="timeline-container">
+<div class="timeline-container">
     <input class="slider" type="range" min="0" [max]="maxHours" [(ngModel)]="currentHour" (input)="updateSliderValue($event)">
 
     <p>{{currentHour}} hours</p>
     <p>Hour: {{currentHour}} ({{getCurrentDayAndHour()}})</p>
 </div>
-
   
-  <div #map style="height: 700px;"></div>
+<div #map style="height: 700px;"></div>
   

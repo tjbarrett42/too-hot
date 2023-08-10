@@ -1,25 +1,10 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
-
-const iconRetinaUrl = 'assets/images/marker-icon-2x.png';
-const iconUrl = 'assets/images/marker-icon.png';
-const shadowUrl = 'assets/images/marker-shadow.png';
-const iconDefault = L.icon({
-    iconRetinaUrl,
-    iconUrl,
-    shadowUrl,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    tooltipAnchor: [16, -28],
-    shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = iconDefault;
-
-
+import { SharedService } from '../shared.service';  // Update with the path to your service
+import { PreferencesComponent } from '../preferences/preferences.component';
 
 interface Location {
     latitude: number;
@@ -46,6 +31,17 @@ interface WeatherData {
   utc_offset_seconds: number;
 }
 
+interface Preferences {
+  temperature: ValuePreference;
+  humidity: ValuePreference;
+}
+
+interface ValuePreference {
+  value: number;
+  symbol: string;
+  precisionValue: number;
+}
+
 interface MapElement {
   data: WeatherData;
   element: L.Rectangle | L.Marker;
@@ -63,10 +59,11 @@ interface LatLngElement {
 })
 export class WeatherComponent implements OnInit {
   @ViewChild('map') mapContainer!: ElementRef;
+
+  @Input() preferencesForm: any = [];
   private map!: L.Map;
   private markers: { data: WeatherData, marker: L.Marker }[] = [];
-  weatherForm: FormGroup;
-  userLocation: Location = null!;
+  userLocation: Location = { latitude: 0, longitude: 0 };  // Initialized to prevent errors
   pointsToCheck: L.Point[] = [];
   weatherData: WeatherData[] = [];
   private elements: MapElement[] = [];
@@ -76,29 +73,49 @@ export class WeatherComponent implements OnInit {
   maxHours: number = 168; // total hours in a week
   currentHour: number = 0;
   forecastStart: Date = new Date();
+  preferenceForm: any;
+  preferences: Preferences = {
+    temperature: {
+      value: 0,
+      symbol: `+-`,
+      precisionValue: 5
+    },
+    humidity: {
+      value: 0,
+      symbol: `+-`,
+      precisionValue: 5
+    }
+  };
 
-  
-
-  constructor(private formBuilder: FormBuilder, private http: HttpClient) {
-    this.weatherForm = this.formBuilder.group({
-      temperature: ['', Validators.required],
-      humidity: ['', Validators.required]
-    });
-  }
+  constructor(
+    private formBuilder: FormBuilder, 
+    private http: HttpClient, 
+    private sharedService: SharedService, 
+    private preferencesComponent: PreferencesComponent
+  ) { }
 
   ngOnInit() {
     navigator.geolocation.getCurrentPosition((position) => {
       this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-      // this.calculatePoints();
       this.initMap(); // Init the map here after the location is set
-      // this.fetchWeatherData(); // Fetch the data after the map is initialized
+      this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
+        this.preferenceForm = preferenceForm;
+        if (this.preferenceForm.valid) {
+          this.preferences = this.preferenceForm.value.reduce((acc: any, curr: any) => {
+            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue } as ValuePreference;
+            
+            return acc;
+        }, {} as Preferences);
+        this.onSubmit()
+        }
+        
+      });
     });
   }
 
   initMap() {
     this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
     this.initialZoomLevel = this.map.getZoom();
-
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -114,16 +131,13 @@ export class WeatherComponent implements OnInit {
     }, 0);
   }
   
-
   calculatePoints() {
-    console.log('distance in calculatePoints:', this.distance);
-    this.distance = 10;
+    this.distance = 1000;
     this.pointsToCheck = [];
-    this.pointsToCheck = this.generateGrid(this.userLocation, 9, this.distance);
+    this.pointsToCheck = this.generateGrid(this.userLocation, 21, this.distance);
   
     this.fetchWeatherData(); // Fetch the data after calculating points
   }
-  
 
   generateGrid(center: Location, gridSize: number, distance: number): L.Point[] {
     const centerPoint = this.map.latLngToContainerPoint([center.latitude, center.longitude]);
@@ -141,17 +155,10 @@ export class WeatherComponent implements OnInit {
         points.push(point);
       }
     }
-
-    console.log('points ', points);
     return points;
 }
 
-
-  
-
   fetchWeatherData() {
-    console.log('fetchWeatherData', this.pointsToCheck.length);
-
     let weatherObservables: Observable<WeatherData>[] = [];
 
     this.pointsToCheck.forEach((point) => {
@@ -166,18 +173,14 @@ export class WeatherComponent implements OnInit {
     });
 
     forkJoin(weatherObservables).subscribe((weatherDataArray) => {
-      console.log(weatherDataArray);
       this.weatherData = weatherDataArray;
-      console.log('weatherDataArray.length', weatherDataArray.length);
-
       this.displayLocations();
     });
   }
   
   updateMap() {
     this.removeLocations();
-    
-  }
+  } 
 
 removeLocations() {
     this.elements.forEach(({ element }) => {
@@ -188,12 +191,7 @@ removeLocations() {
 }
 
 displayLocations() {
-  console.log('displayLocations', this.weatherData.length, this.latLngElements.length);
-
-  console.log('zoom level in displayLocations:', this.map.getZoom());
-
-  console.log('distance in displayLocations:', this.distance);
-  const submittedTemperature = this.weatherForm.value.temperature;
+  // const submittedTemperature: any = this.preferences[0]['value'];
 
   const currentZoomLevel = this.map.getZoom();
   const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
@@ -203,17 +201,16 @@ displayLocations() {
   this.weatherData.forEach((data: WeatherData, index: number) => {
       const latLng = this.latLngElements[index].latLng;
 
-
       const temperature = data.hourly.temperature_2m[this.currentHour]; // updated this line
       const humidity = data.hourly.relativehumidity_2m[this.currentHour]; // updated this line
 
-      const difference = temperature - submittedTemperature;
+      // const difference = temperature - submittedTemperature;
       let color = 'green'; // default to green
-      if (difference > 5) {
-        color = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
-      } else if (difference < -5) {
-        color = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
-      }
+      // if (difference > 5) {
+      //   color = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
+      // } else if (difference < -5) {
+      //   color = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
+      // }
 
       const centerPoint = this.map.latLngToContainerPoint(latLng);
 
@@ -240,10 +237,10 @@ displayLocations() {
 }
 
 onSubmit() {
-  if (this.weatherForm.valid) {
-    console.log(this.weatherForm.value);
+  console.log('pref ', this.preferences);
 
-    const submittedTemperature = this.weatherForm.value.temperature;
+    if (this.preferenceForm.valid) {
+      const submittedTemperature: any = this.preferencesForm.value;
 
     let closestElementData: MapElement | null = null;
     let minDifference: number = Infinity;
@@ -252,7 +249,7 @@ onSubmit() {
       const temperature = data.hourly.temperature_2m[0];
 
       const difference = temperature - submittedTemperature;
-      let newColor = 'green'; // default to green
+      let newColor = 'purple'; // default to green
       if (difference > 5) {
         newColor = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
       } else if (difference < -5) {
@@ -275,16 +272,23 @@ onSubmit() {
       (closestElementData['element'] as L.Rectangle).openPopup();
     }
   }
+  this.updateWeatherDataOnMap();  
 }
 
-  
+  updatePreferences(newPreferences: { lat: number, lon: number }) {
+    this.userLocation.latitude = newPreferences.lat;
+    this.userLocation.longitude = newPreferences.lon;
+    this.displayLocations();
+  }
+
   updateSliderValue(event: any) {
     this.currentHour = Number(event.target.value);
     this.updateWeatherDataOnMap();
   }
 
   updateWeatherDataOnMap() {
-    const submittedTemperature = this.weatherForm.value.temperature;
+    console.log('updateWeather: ', this.preferences.temperature);
+    const submittedTemperature: any = this.preferences.temperature.value;
   
     this.elements.forEach(({ data, element }) => {
       const temperature = data.hourly.temperature_2m[this.currentHour];
@@ -292,10 +296,29 @@ onSubmit() {
   
       const difference = temperature - submittedTemperature;
       let newColor = 'green'; // default to green
-      if (difference > 5) {
-        newColor = 'orange'; // if the temperature is more than 5 degrees higher, make it yellow
-      } else if (difference < -5) {
-        newColor = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
+      // case for symbol
+
+      switch (this.preferences.temperature.symbol) {
+        case 'within':
+          console.log('within');
+          if (difference > this.preferences.temperature.precisionValue) { 
+            newColor = 'orange'; 
+          } else if (difference < this.preferences.temperature.precisionValue*-1) {
+            newColor = 'blue';
+          }
+          break;
+        case 'lessthan':
+          console.log('lessthan');
+          if (difference > this.preferences.temperature.precisionValue) { 
+            newColor = 'orange'; 
+          }
+          break;
+        case 'greaterthan':
+          console.log('greaterthan');
+          if (difference < this.preferences.temperature.precisionValue*-1) {
+            newColor = 'blue';
+          }
+          break;
       }
   
       if (element instanceof L.Rectangle) {
@@ -307,8 +330,6 @@ onSubmit() {
     });
   }
   
-
-
   getCurrentDayAndHour(): string {
     // Create a new date that is the forecast start plus the number of hours
     let date = new Date(this.forecastStart.getTime() + this.currentHour * 60 * 60 * 1000);
@@ -319,8 +340,4 @@ onSubmit() {
 
     return `${day}, ${hour}:00`;
   }
-
-
-  
-  
 }

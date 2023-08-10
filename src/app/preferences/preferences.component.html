@@ -1,4 +1,4 @@
-<form [formGroup]="preferenceForm">
+<form [formGroup]="preferenceForm" >
     <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i=index">
       <div [formGroupName]="i">
         <select formControlName="attribute">
@@ -7,6 +7,12 @@
           <!-- add options here as necessary -->
         </select>
         <input formControlName="value" type="number">
+        <select formControlName="symbol" type="string">
+          <option value="within">+-</option>
+          <option value="lessthan">lt</option>
+          <option value="greaterthan">gt</option>
+        </select>
+        <input formControlName="precisionValue" type="number">
         <button (click)="removePreference(i)">Remove</button>
       </div>
     </div>

@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { AppComponent } from './app.component';
 import { WeatherComponent } from './weather/weather.component';
 import { PreferencesComponent } from './preferences/preferences.component';
+import { SharedService } from './shared.service';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,10 @@ import { PreferencesComponent } from './preferences/preferences.component';
     ReactiveFormsModule,
     FormsModule
   ],
-  providers: [],
+  providers: [
+    SharedService,
+    PreferencesComponent
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
