@@ -25,15 +25,13 @@ export class PreferencesComponent {
     const newPref = this.fb.group({
       attribute: '',
       value: '',
-      symbol: '',
-      precisionValue: ''
+      symbol: 'within',
+      precisionValue: '5',
+      color: '#ff0000'
     });
 
     this.preferences.valueChanges.subscribe((value) => {
       this.preferencesChanged.emit(this.preferences);
-      // console.log(this.preferences);
-      // this.preferencesChanged.emit([value.attribute, value]);
-      // console.log('valuechanges: ',[value.attribute, value]);
     });
 
     return newPref;

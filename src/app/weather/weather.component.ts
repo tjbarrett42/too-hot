@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { SharedService } from '../shared.service';  // Update with the path to your service
 import { PreferencesComponent } from '../preferences/preferences.component';
+import * as spoofData from '../../assets/spoof.json'
 
 interface Location {
     latitude: number;
@@ -32,14 +33,15 @@ interface WeatherData {
 }
 
 interface Preferences {
-  temperature: ValuePreference;
-  humidity: ValuePreference;
+  temperature_2m: ValuePreference;
+  relativeHumidity_2m: ValuePreference;
 }
 
 interface ValuePreference {
   value: number;
   symbol: string;
   precisionValue: number;
+  color: string;
 }
 
 interface MapElement {
@@ -75,17 +77,20 @@ export class WeatherComponent implements OnInit {
   forecastStart: Date = new Date();
   preferenceForm: any;
   preferences: Preferences = {
-    temperature: {
+    temperature_2m: {
       value: 0,
       symbol: `+-`,
-      precisionValue: 5
+      precisionValue: 5,
+      color: 'red',
     },
-    humidity: {
+    relativeHumidity_2m: {
       value: 0,
       symbol: `+-`,
-      precisionValue: 5
+      precisionValue: 5,
+      color: 'blue'
     }
   };
+  spoofing: boolean = true;
 
   constructor(
     private formBuilder: FormBuilder, 
@@ -102,13 +107,11 @@ export class WeatherComponent implements OnInit {
         this.preferenceForm = preferenceForm;
         if (this.preferenceForm.valid) {
           this.preferences = this.preferenceForm.value.reduce((acc: any, curr: any) => {
-            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue } as ValuePreference;
-            
+            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, color: curr.color } as ValuePreference;
             return acc;
         }, {} as Preferences);
         this.onSubmit()
         }
-        
       });
     });
   }
@@ -132,9 +135,9 @@ export class WeatherComponent implements OnInit {
   }
   
   calculatePoints() {
-    this.distance = 1000;
+    this.distance = 50;
     this.pointsToCheck = [];
-    this.pointsToCheck = this.generateGrid(this.userLocation, 21, this.distance);
+    this.pointsToCheck = this.generateGrid(this.userLocation, 30, this.distance);
   
     this.fetchWeatherData(); // Fetch the data after calculating points
   }
@@ -161,21 +164,35 @@ export class WeatherComponent implements OnInit {
   fetchWeatherData() {
     let weatherObservables: Observable<WeatherData>[] = [];
 
-    this.pointsToCheck.forEach((point) => {
+    if (this.spoofing) {
+      this.pointsToCheck.forEach((point) => {
+        const latLng = this.map.containerPointToLatLng(point);
+  
+        this.latLngElements.push({ latLng, element: null! });
+      });
+      this.http.get('../../assets/spoof.json').subscribe((data) => {
+        this.weatherData = data as WeatherData[];
+        console.log(this.weatherData);
+        this.displayLocations();
+      });
+    } else {
+      this.pointsToCheck.forEach((point) => {
       const latLng = this.map.containerPointToLatLng(point);
 
       this.latLngElements.push({ latLng, element: null! });
 
       let weatherObservable = this.http.get<WeatherData>(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m&temperature_unit=fahrenheit`
+        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m&temperature_unit=fahrenheit&apikey=tU9Zk9YSzmTTV6kZ`
       );
       weatherObservables.push(weatherObservable);
-    });
+      });
 
-    forkJoin(weatherObservables).subscribe((weatherDataArray) => {
-      this.weatherData = weatherDataArray;
-      this.displayLocations();
-    });
+      forkJoin(weatherObservables).subscribe((weatherDataArray) => {
+        this.weatherData = weatherDataArray;
+        console.log(this.weatherData);
+        this.displayLocations();
+      });
+    }
   }
   
   updateMap() {
@@ -190,27 +207,18 @@ removeLocations() {
     this.latLngElements = [];
 }
 
-displayLocations() {
-  // const submittedTemperature: any = this.preferences[0]['value'];
-
+displayLocations() { // Build rectangle elements and gets popups bound and data bound to each element
   const currentZoomLevel = this.map.getZoom();
   const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
-
   const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
 
   this.weatherData.forEach((data: WeatherData, index: number) => {
       const latLng = this.latLngElements[index].latLng;
 
-      const temperature = data.hourly.temperature_2m[this.currentHour]; // updated this line
-      const humidity = data.hourly.relativehumidity_2m[this.currentHour]; // updated this line
+      const temperature = data.hourly.temperature_2m[this.currentHour];
+      const humidity = data.hourly.relativehumidity_2m[this.currentHour];
 
-      // const difference = temperature - submittedTemperature;
       let color = 'green'; // default to green
-      // if (difference > 5) {
-      //   color = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
-      // } else if (difference < -5) {
-      //   color = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
-      // }
 
       const centerPoint = this.map.latLngToContainerPoint(latLng);
 
@@ -225,8 +233,9 @@ displayLocations() {
       // Create bounds for the rectangle
       const bounds: L.LatLngBoundsExpression = [[northWestLatLng.lat, northWestLatLng.lng], [southEastLatLng.lat, southEastLatLng.lng]];
 
-      const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5 })
+      const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5, stroke: false})
       .bindPopup(`Location: ${latLng.lat}, ${latLng.lng}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
+      .bindTooltip(`Location: ${latLng.lat}, ${latLng.lng}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
       .addTo(this.map);
 
       this.elements.push({ data: data, element: rectangle });
@@ -241,45 +250,9 @@ onSubmit() {
 
     if (this.preferenceForm.valid) {
       const submittedTemperature: any = this.preferencesForm.value;
-
-    let closestElementData: MapElement | null = null;
-    let minDifference: number = Infinity;
-
-    this.elements.forEach(({ data, element }) => {
-      const temperature = data.hourly.temperature_2m[0];
-
-      const difference = temperature - submittedTemperature;
-      let newColor = 'purple'; // default to green
-      if (difference > 5) {
-        newColor = 'yellow'; // if the temperature is more than 5 degrees higher, make it yellow
-      } else if (difference < -5) {
-        newColor = 'blue'; // if the temperature is more than 5 degrees lower, make it blue
-      }
-      
-      if (Math.abs(difference) < minDifference) {
-        minDifference = Math.abs(difference);
-        closestElementData = { data, element };
-      }
-
-      // Check if the element is a Rectangle and set the new color
-      if (element instanceof L.Rectangle) {
-        element.setStyle({ color: newColor });
-      }
-    });
-
-    // Check if closestElementData has been assigned and is not null
-    if (closestElementData) {
-      (closestElementData['element'] as L.Rectangle).openPopup();
-    }
   }
   this.updateWeatherDataOnMap();  
 }
-
-  updatePreferences(newPreferences: { lat: number, lon: number }) {
-    this.userLocation.latitude = newPreferences.lat;
-    this.userLocation.longitude = newPreferences.lon;
-    this.displayLocations();
-  }
 
   updateSliderValue(event: any) {
     this.currentHour = Number(event.target.value);
@@ -287,47 +260,126 @@ onSubmit() {
   }
 
   updateWeatherDataOnMap() {
-    console.log('updateWeather: ', this.preferences.temperature);
-    const submittedTemperature: any = this.preferences.temperature.value;
-  
     this.elements.forEach(({ data, element }) => {
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
-  
-      const difference = temperature - submittedTemperature;
-      let newColor = 'green'; // default to green
-      // case for symbol
 
-      switch (this.preferences.temperature.symbol) {
-        case 'within':
-          console.log('within');
-          if (difference > this.preferences.temperature.precisionValue) { 
-            newColor = 'orange'; 
-          } else if (difference < this.preferences.temperature.precisionValue*-1) {
-            newColor = 'blue';
-          }
-          break;
-        case 'lessthan':
-          console.log('lessthan');
-          if (difference > this.preferences.temperature.precisionValue) { 
-            newColor = 'orange'; 
-          }
-          break;
-        case 'greaterthan':
-          console.log('greaterthan');
-          if (difference < this.preferences.temperature.precisionValue*-1) {
-            newColor = 'blue';
-          }
-          break;
-      }
-  
+      let colors: any = [];
+      let opacities: any = [];
+      let attributes = 0;
+      let stroke = true;
+
+      // Iterate thru attributes (temp and humidity)
+      Object.entries(this.preferences).forEach(([key, keyData], index) => {
+        console.log(key, keyData);
+        attributes += 1;
+        let value = keyData.value;
+        let symbol = keyData.symbol;
+        let precisionValue = keyData.precisionValue;
+        let color = keyData.color;
+        
+        colors.push(color);
+        
+        const attributeName = key;
+        console.log('att: ', attributeName);
+        console.log('all data: ', data);
+
+        const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
+        
+        // TODO: how do i connect this to the specific temperature?
+        const difference = (currentValue as number) - value;
+        
+        // case for symbol
+        switch (symbol) {
+          case 'within':
+            if (difference > precisionValue || difference < precisionValue*-1) { 
+              opacities.push(0);
+              stroke = false;
+            } else {
+              opacities.push((1 - Math.abs(difference / precisionValue)) / 2)
+            }
+            break;
+          case 'lessthan':
+            console.log('lessthan');
+            if (difference > precisionValue) { 
+              opacities.push(0);
+              stroke = false;   
+            }
+            break;
+          case 'greaterthan':
+            console.log('greaterthan');
+            if (difference < precisionValue*-1) {
+              opacities.push(0);
+              stroke = false;
+            }
+            break;
+        }
+      });
+      
+      //take average opacity
+      let newOpacity = opacities.reduce((acc: number, cur: number) => acc + cur, 0) / opacities.length;
+
+      // take average color
+      let totalRgbValue = [ 0, 0, 0 ];
+
+      Object.entries(colors).forEach(([key, data], index) => {
+        console.log(data)
+        let newRgbColor = this.hexToRgb(data);
+        if (opacities[index] > 0 ) {
+          totalRgbValue[0] += newRgbColor.r;
+          totalRgbValue[1] += newRgbColor.g;
+          totalRgbValue[2] += newRgbColor.b;
+        }
+      });
+
+      // highlight 
+      totalRgbValue[0] /= attributes;
+      totalRgbValue[1] /= attributes;
+      totalRgbValue[2] /= attributes; 
+
+      let newHexColor = this.rgbToHex(Math.round(totalRgbValue[0]), Math.round(totalRgbValue[1]), Math.round(totalRgbValue[2]));
+
+      console.log('opacitiesLen: ', opacities.length);
+
       if (element instanceof L.Rectangle) {
-        element.setStyle({ color: newColor });
+        element.setStyle({ color: newHexColor, fillOpacity: newOpacity, stroke: stroke });
+        
         element.setPopupContent(
           `Location: ${data.latitude}, ${data.longitude}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`
         );
       }
+      
+      // TODO: reintroduce closest element later
+
+      // let closestElementData: MapElement | null = null;
+      // let minDifference: number = Infinity;
+  
+      // if (Math.abs(difference) < minDifference) {
+      //   minDifference = Math.abs(difference);
+      //   closestElementData = { data, element };
+      // }
+      // if (closestElementData) {
+      //   (closestElementData['element'] as L.Rectangle).openPopup();
+      // }
     });
+  }
+
+  hexToRgb(hex: any): any {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  componentToHex(c: number) {
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+  }
+
+  rgbToHex(r: number, g: number, b: number) {
+    return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
   }
   
   getCurrentDayAndHour(): string {
