@@ -26,8 +26,7 @@ export class PreferencesComponent {
       attribute: '',
       value: '',
       symbol: 'within',
-      precisionValue: '5',
-      color: '#ff0000'
+      precisionValue: '5'
     });
 
     this.preferences.valueChanges.subscribe((value) => {
@@ -52,4 +51,5 @@ export class PreferencesComponent {
   changePreference() {
     this.preferencesChanged.emit(this.preferences.value);
   }
+  
 }

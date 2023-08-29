@@ -1,26 +1,62 @@
-<form [formGroup]="preferenceForm" >
-    <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i=index">
-      <div [formGroupName]="i">
-        <select formControlName="attribute">
-          <option value="temperature_2m">Temperature</option>
-          <option value="relativehumidity_2m">Humidity</option>
-          <!-- add options here as necessary -->
-        </select>
-        <input formControlName="value" type="number">
-        <select formControlName="symbol" type="string">
-          <option value="within">+-</option>
-          <option value="lessthan">lt</option>
-          <option value="greaterthan">gt</option>
-        </select>
-        <input formControlName="precisionValue" type="number">
-        <select formControlName="color" type="string">
-          <option value="#ff0000">red</option>
-          <option value="#00ff00">green</option>
-          <option value="#0000ff">blue</option>
-        </select>
-        <button (click)="removePreference(i)">Remove</button>
-      </div>
-    </div>
-    <button (click)="addPreference()">Add Preference</button>
-  </form>
+<mat-card>
+  <mat-card-title>Preferences</mat-card-title>
+  <mat-card-content>
+
+    <form [formGroup]="preferenceForm">
+      <mat-accordion>
+
+        <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i=index">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                Preference {{i + 1}}
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div [formGroupName]="i">
+              <mat-form-field>
+                <mat-label>Attribute</mat-label>
+                <mat-select formControlName="attribute">
+                  <mat-option value="temperature_2m">Temperature</mat-option>
+                  <mat-option value="relativehumidity_2m">Humidity</mat-option>
+                  <mat-option value="precipitation_probability">Precip Chance</mat-option>
+                  <mat-option value="cloudcover">Cloudcover</mat-option>
+                  <mat-option value="windspeed_10m">Windspeed</mat-option>
+                  <mat-option value="soil_moisture_0_1cm">Soil Moisture</mat-option>
+                  <mat-option value="uv_index">UV Index</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Value</mat-label>
+                <input matInput formControlName="value" type="number">
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Symbol</mat-label>
+                <mat-select formControlName="symbol">
+                  <mat-option value="within">+-</mat-option>
+                  <mat-option value="lessthan">lt</mat-option>
+                  <mat-option value="greaterthan">gt</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field>
+                <mat-label>Precision Value</mat-label>
+                <input matInput formControlName="precisionValue" type="number">
+              </mat-form-field>
+
+              <button mat-button (click)="removePreference(i)">Remove</button>
+            </div>
+
+          </mat-expansion-panel>
+        </div>
+
+      </mat-accordion>
+      <button mat-raised-button color="primary" (click)="addPreference()">Add Preference</button>
+    </form>
+
+  </mat-card-content>
+</mat-card>
+
   

@@ -19,11 +19,21 @@ interface WeatherData {
     relativehumidity_2m: number[];
     temperature_2m: number[];
     time: string[];
+    precipitation_probability: number[];
+    cloudcover: number[];
+    windspeed_10m: number[];
+    soil_moisture_0_1cm: number[];
+    uv_index: number[];
   };
   hourly_units: {
     time: string;
     temperature_2m: string;
     relativehumidity_2m: string;
+    precipitation_probability: string;
+    cloudcover: string;
+    windspeed_10m: string;
+    soil_moisture_0_1cm: string;
+    uv_index: string;
   };
   latitude: number;
   longitude: number;
@@ -41,7 +51,6 @@ interface ValuePreference {
   value: number;
   symbol: string;
   precisionValue: number;
-  color: string;
 }
 
 interface MapElement {
@@ -80,14 +89,12 @@ export class WeatherComponent implements OnInit {
     temperature_2m: {
       value: 0,
       symbol: `+-`,
-      precisionValue: 5,
-      color: 'red',
+      precisionValue: 5
     },
     relativeHumidity_2m: {
       value: 0,
       symbol: `+-`,
-      precisionValue: 5,
-      color: 'blue'
+      precisionValue: 5
     }
   };
   spoofing: boolean = true;
@@ -159,7 +166,7 @@ export class WeatherComponent implements OnInit {
       }
     }
     return points;
-}
+  }
 
   fetchWeatherData() {
     let weatherObservables: Observable<WeatherData>[] = [];
@@ -182,7 +189,7 @@ export class WeatherComponent implements OnInit {
       this.latLngElements.push({ latLng, element: null! });
 
       let weatherObservable = this.http.get<WeatherData>(
-        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m&temperature_unit=fahrenheit&apikey=tU9Zk9YSzmTTV6kZ`
+        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=tU9Zk9YSzmTTV6kZ`
       );
       weatherObservables.push(weatherObservable);
       });
@@ -217,8 +224,13 @@ displayLocations() { // Build rectangle elements and gets popups bound and data 
 
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
+      const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
+      const cloudcover = data.hourly.cloudcover[this.currentHour];
+      const windspeed_10m = data.hourly.windspeed_10m[this.currentHour];
+      const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
+      const uv_index = data.hourly.uv_index[this.currentHour];
 
-      let color = 'green'; // default to green
+      let color = '#7343BE'; // default to green
 
       const centerPoint = this.map.latLngToContainerPoint(latLng);
 
@@ -234,9 +246,30 @@ displayLocations() { // Build rectangle elements and gets popups bound and data 
       const bounds: L.LatLngBoundsExpression = [[northWestLatLng.lat, northWestLatLng.lng], [southEastLatLng.lat, southEastLatLng.lng]];
 
       const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5, stroke: false})
-      .bindPopup(`Location: ${latLng.lat}, ${latLng.lng}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
-      .bindTooltip(`Location: ${latLng.lat}, ${latLng.lng}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`)
+      .bindPopup(
+        `Location: ${data.latitude}, ${data.longitude}
+          <br>Temperature: ${temperature}°F
+          <br>Humidity: ${humidity}%
+          <br>Precip Chance: ${precipitation_probability}%
+          <br>Cloudcover: ${cloudcover}%
+          <br>Windspeed: ${windspeed_10m}mph
+          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+          <br>UV Index: ${uv_index}`
+        )
+      .bindTooltip(
+        `Location: ${data.latitude}, ${data.longitude}
+          <br>Temperature: ${temperature}°F
+          <br>Humidity: ${humidity}%
+          <br>Precip Chance: ${precipitation_probability}%
+          <br>Cloudcover: ${cloudcover}%
+          <br>Windspeed: ${windspeed_10m}mph
+          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+          <br>UV Index: ${uv_index}`
+        )
       .addTo(this.map);
+
+      data.longitude = latLng.lng;
+      data.latitude = latLng.lat;
 
       this.elements.push({ data: data, element: rectangle });
   });
@@ -247,10 +280,6 @@ displayLocations() { // Build rectangle elements and gets popups bound and data 
 
 onSubmit() {
   console.log('pref ', this.preferences);
-
-    if (this.preferenceForm.valid) {
-      const submittedTemperature: any = this.preferencesForm.value;
-  }
   this.updateWeatherDataOnMap();  
 }
 
@@ -263,11 +292,15 @@ onSubmit() {
     this.elements.forEach(({ data, element }) => {
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
+      const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
+      const cloudcover = data.hourly.cloudcover[this.currentHour];
+      const windspeed_10m = data.hourly.windspeed_10m[this.currentHour];
+      const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
+      const uv_index = data.hourly.uv_index[this.currentHour];
 
-      let colors: any = [];
-      let opacities: any = [];
       let attributes = 0;
       let stroke = true;
+      let newOpacity: number = 0;
 
       // Iterate thru attributes (temp and humidity)
       Object.entries(this.preferences).forEach(([key, keyData], index) => {
@@ -276,76 +309,56 @@ onSubmit() {
         let value = keyData.value;
         let symbol = keyData.symbol;
         let precisionValue = keyData.precisionValue;
-        let color = keyData.color;
-        
-        colors.push(color);
-        
-        const attributeName = key;
-        console.log('att: ', attributeName);
-        console.log('all data: ', data);
 
+        const attributeName = key;
         const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
-        
-        // TODO: how do i connect this to the specific temperature?
         const difference = (currentValue as number) - value;
-        
+
         // case for symbol
         switch (symbol) {
           case 'within':
             if (difference > precisionValue || difference < precisionValue*-1) { 
-              opacities.push(0);
               stroke = false;
             } else {
-              opacities.push((1 - Math.abs(difference / precisionValue)) / 2)
+              newOpacity = 0.2
             }
             break;
           case 'lessthan':
             console.log('lessthan');
             if (difference > precisionValue) { 
-              opacities.push(0);
               stroke = false;   
             }
             break;
           case 'greaterthan':
             console.log('greaterthan');
             if (difference < precisionValue*-1) {
-              opacities.push(0);
               stroke = false;
             }
             break;
         }
       });
-      
-      //take average opacity
-      let newOpacity = opacities.reduce((acc: number, cur: number) => acc + cur, 0) / opacities.length;
-
-      // take average color
-      let totalRgbValue = [ 0, 0, 0 ];
-
-      Object.entries(colors).forEach(([key, data], index) => {
-        console.log(data)
-        let newRgbColor = this.hexToRgb(data);
-        if (opacities[index] > 0 ) {
-          totalRgbValue[0] += newRgbColor.r;
-          totalRgbValue[1] += newRgbColor.g;
-          totalRgbValue[2] += newRgbColor.b;
-        }
-      });
-
-      // highlight 
-      totalRgbValue[0] /= attributes;
-      totalRgbValue[1] /= attributes;
-      totalRgbValue[2] /= attributes; 
-
-      let newHexColor = this.rgbToHex(Math.round(totalRgbValue[0]), Math.round(totalRgbValue[1]), Math.round(totalRgbValue[2]));
-
-      console.log('opacitiesLen: ', opacities.length);
 
       if (element instanceof L.Rectangle) {
-        element.setStyle({ color: newHexColor, fillOpacity: newOpacity, stroke: stroke });
-        
+        element.setStyle({ color: '#7343BE', fillOpacity: newOpacity, stroke: stroke });
         element.setPopupContent(
-          `Location: ${data.latitude}, ${data.longitude}<br>Temperature: ${temperature}°F<br>Humidity: ${humidity}%`
+          `Location: ${data.latitude}, ${data.longitude}
+          <br>Temperature: ${temperature}°F
+          <br>Humidity: ${humidity}%
+          <br>Precip Chance: ${precipitation_probability}%
+          <br>Cloudcover: ${cloudcover}%
+          <br>Windspeed: ${windspeed_10m}mph
+          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+          <br>UV Index: ${uv_index}`
+        );
+        element.setTooltipContent(
+          `Location: ${data.latitude}, ${data.longitude}
+          <br>Temperature: ${temperature}°F
+          <br>Humidity: ${humidity}%
+          <br>Precip Chance: ${precipitation_probability}%
+          <br>Cloudcover: ${cloudcover}%
+          <br>Windspeed: ${windspeed_10m}mph
+          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+          <br>UV Index: ${uv_index}`
         );
       }
       
@@ -362,24 +375,6 @@ onSubmit() {
       //   (closestElementData['element'] as L.Rectangle).openPopup();
       // }
     });
-  }
-
-  hexToRgb(hex: any): any {
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  }
-
-  componentToHex(c: number) {
-    var hex = c.toString(16);
-    return hex.length == 1 ? "0" + hex : hex;
-  }
-
-  rgbToHex(r: number, g: number, b: number) {
-    return "#" + this.componentToHex(r) + this.componentToHex(g) + this.componentToHex(b);
   }
   
   getCurrentDayAndHour(): string {
