@@ -1,36 +1,21 @@
 <mat-card>
   <mat-card-title>Preferences</mat-card-title>
   <mat-card-content>
-
     <form [formGroup]="preferenceForm">
-      <mat-accordion>
-
-        <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i=index">
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                Preference {{i + 1}}
-              </mat-panel-title>
-            </mat-expansion-panel-header>
-
+      <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              {{ attributeList[i] }}
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
             <div [formGroupName]="i">
-              <mat-form-field>
-                <mat-label>Attribute</mat-label>
-                <mat-select formControlName="attribute">
-                  <mat-option value="temperature_2m">Temperature</mat-option>
-                  <mat-option value="relativehumidity_2m">Humidity</mat-option>
-                  <mat-option value="precipitation_probability">Precip Chance</mat-option>
-                  <mat-option value="cloudcover">Cloudcover</mat-option>
-                  <mat-option value="windspeed_10m">Windspeed</mat-option>
-                  <mat-option value="soil_moisture_0_1cm">Soil Moisture</mat-option>
-                  <mat-option value="uv_index">UV Index</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field>
-                <mat-label>Value</mat-label>
-                <input matInput formControlName="value" type="number">
-              </mat-form-field>
+              <mat-label>{{slider.value}}</mat-label>
+              <mat-slider min="0" max="100" step="1" >
+                
+                <input matSliderThumb formControlName="value" #slider/>
+              </mat-slider>
 
               <mat-form-field>
                 <mat-label>Symbol</mat-label>
@@ -46,17 +31,13 @@
                 <input matInput formControlName="precisionValue" type="number">
               </mat-form-field>
 
-              <button mat-button (click)="removePreference(i)">Remove</button>
+              <mat-slide-toggle formControlName="toggleValue">
+                On/Off
+              </mat-slide-toggle>
             </div>
-
-          </mat-expansion-panel>
-        </div>
-
-      </mat-accordion>
-      <button mat-raised-button color="primary" (click)="addPreference()">Add Preference</button>
+          </mat-card-content>
+        </mat-card>
+      </div>
     </form>
-
   </mat-card-content>
 </mat-card>
-
-  

@@ -14,6 +14,7 @@ export class SharedService {
 
     // Function to trigger the event
     triggerEvent(data: any) {
+        console.log('About to emit: ', data);
         this.trigger.next(data);
     }
 }

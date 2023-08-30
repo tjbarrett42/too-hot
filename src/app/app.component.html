@@ -12,13 +12,10 @@
     <mat-icon>share</mat-icon>
   </button>
  </mat-toolbar>
- <!-- Container -->
   <div style="display: flex; flex-direction: row; height: 100vh;">
-  <!-- Map goes here -->
     <div style="flex: 1;">
       <app-weather></app-weather>
     </div>
-  <!-- Preferences Card -->
     <mat-card style="width: 300px;">
       <app-preferences (preferencesChanged)="updatePreferences($event)"></app-preferences>
     </mat-card>

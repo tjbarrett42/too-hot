@@ -111,10 +111,14 @@ export class WeatherComponent implements OnInit {
       this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
       this.initMap(); // Init the map here after the location is set
       this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
+        // console.log('Received in subscription: ', preferenceForm);
         this.preferenceForm = preferenceForm;
-        if (this.preferenceForm.valid) {
-          this.preferences = this.preferenceForm.value.reduce((acc: any, curr: any) => {
-            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, color: curr.color } as ValuePreference;
+        // console.log('this.prefForm, ', this.preferenceForm);
+        // console.log("Is form valid?", this.preferenceForm.valid); // For debugging
+        console.log('before reduce ', this.preferenceForm);  // For debugging
+        if (this.preferenceForm) { // need to change back to this.preferenceForm.valid
+          this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
+            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, toggleValue: curr.toggleValue } as ValuePreference;
             return acc;
         }, {} as Preferences);
         this.onSubmit()
@@ -279,7 +283,6 @@ displayLocations() { // Build rectangle elements and gets popups bound and data 
 }
 
 onSubmit() {
-  console.log('pref ', this.preferences);
   this.updateWeatherDataOnMap();  
 }
 
@@ -302,39 +305,38 @@ onSubmit() {
       let stroke = true;
       let newOpacity: number = 0;
 
-      // Iterate thru attributes (temp and humidity)
       Object.entries(this.preferences).forEach(([key, keyData], index) => {
-        console.log(key, keyData);
-        attributes += 1;
-        let value = keyData.value;
-        let symbol = keyData.symbol;
-        let precisionValue = keyData.precisionValue;
-
-        const attributeName = key;
-        const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
-        const difference = (currentValue as number) - value;
-
-        // case for symbol
-        switch (symbol) {
-          case 'within':
-            if (difference > precisionValue || difference < precisionValue*-1) { 
-              stroke = false;
-            } else {
-              newOpacity = 0.2
-            }
-            break;
-          case 'lessthan':
-            console.log('lessthan');
-            if (difference > precisionValue) { 
-              stroke = false;   
-            }
-            break;
-          case 'greaterthan':
-            console.log('greaterthan');
-            if (difference < precisionValue*-1) {
-              stroke = false;
-            }
-            break;
+        console.log(keyData);
+        if (keyData.toggleValue){
+          attributes += 1;
+          let value = keyData.value;
+          let symbol = keyData.symbol;
+          let precisionValue = keyData.precisionValue;
+  
+          const attributeName = key;
+          const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
+          const difference = (currentValue as number) - value;
+  
+          // case for symbol
+          switch (symbol) {
+            case 'within':
+              if (difference > precisionValue || difference < precisionValue*-1) { 
+                stroke = false;
+              } else {
+                newOpacity = 0.2
+              }
+              break;
+            case 'lessthan':
+              if (difference > precisionValue) { 
+                stroke = false;   
+              }
+              break;
+            case 'greaterthan':
+              if (difference < precisionValue*-1) {
+                stroke = false;
+              }
+              break;
+          }
         }
       });
 
