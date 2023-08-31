@@ -74,6 +74,7 @@ export class WeatherComponent implements OnInit {
   @Input() preferencesForm: any = [];
   private map!: L.Map;
   private markers: { data: WeatherData, marker: L.Marker }[] = [];
+  private elementCache: { [key: string]: L.Rectangle | L.Marker } = {};
   userLocation: Location = { latitude: 0, longitude: 0 };  // Initialized to prevent errors
   pointsToCheck: L.Point[] = [];
   weatherData: WeatherData[] = [];
@@ -97,6 +98,7 @@ export class WeatherComponent implements OnInit {
       precisionValue: 5
     }
   };
+  tickInterval: number = 24;
   spoofing: boolean = true;
 
   constructor(
@@ -129,6 +131,9 @@ export class WeatherComponent implements OnInit {
 
   initMap() {
     this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
+
+    L.control.scale().addTo(this.map);
+
     this.initialZoomLevel = this.map.getZoom();
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -293,6 +298,19 @@ onSubmit() {
 
   updateWeatherDataOnMap() {
     this.elements.forEach(({ data, element }) => {
+      // Generate a cache key for each set of latitude and longitude
+      const cacheKey = `${data.latitude}-${data.longitude}-${this.currentHour}`;
+  
+      // Check if element is already cached
+      let cachedElement: L.Rectangle | L.Marker | undefined = this.elementCache[cacheKey];
+  
+      // If not, cache the incoming element
+      if (!cachedElement) {
+        cachedElement = element;
+        this.elementCache[cacheKey] = cachedElement;
+      }
+  
+      // Existing logic
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
       const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
@@ -300,13 +318,12 @@ onSubmit() {
       const windspeed_10m = data.hourly.windspeed_10m[this.currentHour];
       const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
       const uv_index = data.hourly.uv_index[this.currentHour];
-
+  
       let attributes = 0;
       let stroke = true;
       let newOpacity: number = 0;
-
+  
       Object.entries(this.preferences).forEach(([key, keyData], index) => {
-        console.log(keyData);
         if (keyData.toggleValue){
           attributes += 1;
           let value = keyData.value;
@@ -317,32 +334,33 @@ onSubmit() {
           const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
           const difference = (currentValue as number) - value;
   
-          // case for symbol
           switch (symbol) {
             case 'within':
-              if (difference > precisionValue || difference < precisionValue*-1) { 
+              if (difference > precisionValue || difference < precisionValue * -1) { 
                 stroke = false;
               } else {
-                newOpacity = 0.2
+                newOpacity = 0.2;
               }
               break;
             case 'lessthan':
-              if (difference > precisionValue) { 
+              if (currentValue > value) { 
                 stroke = false;   
+              } else {
+                newOpacity = 0.2;
               }
               break;
             case 'greaterthan':
-              if (difference < precisionValue*-1) {
+              if (currentValue < value) {
                 stroke = false;
               }
               break;
           }
         }
       });
-
-      if (element instanceof L.Rectangle) {
-        element.setStyle({ color: '#7343BE', fillOpacity: newOpacity, stroke: stroke });
-        element.setPopupContent(
+  
+      if (cachedElement instanceof L.Rectangle) {
+        cachedElement.setStyle({ color: '#7343BE', fillOpacity: newOpacity, stroke: stroke });
+        cachedElement.setPopupContent(
           `Location: ${data.latitude}, ${data.longitude}
           <br>Temperature: ${temperature}°F
           <br>Humidity: ${humidity}%
@@ -352,7 +370,7 @@ onSubmit() {
           <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
           <br>UV Index: ${uv_index}`
         );
-        element.setTooltipContent(
+        cachedElement.setTooltipContent(
           `Location: ${data.latitude}, ${data.longitude}
           <br>Temperature: ${temperature}°F
           <br>Humidity: ${humidity}%
@@ -363,21 +381,8 @@ onSubmit() {
           <br>UV Index: ${uv_index}`
         );
       }
-      
-      // TODO: reintroduce closest element later
-
-      // let closestElementData: MapElement | null = null;
-      // let minDifference: number = Infinity;
-  
-      // if (Math.abs(difference) < minDifference) {
-      //   minDifference = Math.abs(difference);
-      //   closestElementData = { data, element };
-      // }
-      // if (closestElementData) {
-      //   (closestElementData['element'] as L.Rectangle).openPopup();
-      // }
     });
-  }
+  }  
   
   getCurrentDayAndHour(): string {
     // Create a new date that is the forecast start plus the number of hours
@@ -389,4 +394,9 @@ onSubmit() {
 
     return `${day}, ${hour}:00`;
   }
+
+  getThumbLabelPosition(): number {
+    return (this.currentHour / this.maxHours) * 100;
+  }
+
 }

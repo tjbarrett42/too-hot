@@ -1,5 +1,4 @@
 <mat-card>
-  <mat-card-title>Preferences</mat-card-title>
   <mat-card-content>
     <form [formGroup]="preferenceForm">
       <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
@@ -11,23 +10,29 @@
           </mat-card-header>
           <mat-card-content>
             <div [formGroupName]="i">
-              <mat-label>{{slider.value}}</mat-label>
-              <mat-slider min="0" max="100" step="1" >
-                
-                <input matSliderThumb formControlName="value" #slider/>
-              </mat-slider>
+              <!-- Flex container to hold the dropdown and the slider -->
+              <div style="display: flex; align-items: center;">
+                <!-- Dropdown -->
+                <mat-form-field style="margin-right: 16px;">
+                  <mat-select formControlName="symbol">
+                    <mat-option value="within">=</mat-option>
+                    <mat-option value="lessthan">&lt;</mat-option>
+                    <mat-option value="greaterthan">&gt;</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Slider -->
+                <div>
+                  <mat-label>{{slider.value}}</mat-label>
+                  <mat-slider min="0" max="100" step="1">
+                    <input matSliderThumb formControlName="value" #slider/>
+                  </mat-slider>
+                </div>
+              </div>
+              <!-- End of flex container -->
 
               <mat-form-field>
-                <mat-label>Symbol</mat-label>
-                <mat-select formControlName="symbol">
-                  <mat-option value="within">+-</mat-option>
-                  <mat-option value="lessthan">lt</mat-option>
-                  <mat-option value="greaterthan">gt</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field>
-                <mat-label>Precision Value</mat-label>
+                <mat-label>+/-</mat-label>
                 <input matInput formControlName="precisionValue" type="number">
               </mat-form-field>
 

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { debounceTime } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-preferences',
@@ -27,6 +27,19 @@ export class PreferencesComponent {
         toggleValue: [false]
       });
 
+      const symbolControl = newPref.get('symbol');
+      const precisionValueControl = newPref.get('precisionValue');
+
+      if (symbolControl && precisionValueControl) {
+        symbolControl.valueChanges.subscribe(value => {
+          if (value !== 'within') {
+            precisionValueControl.disable();
+          } else {
+            precisionValueControl.enable();
+          }
+        });
+      }
+      
       preferences.push(newPref);
     });
 

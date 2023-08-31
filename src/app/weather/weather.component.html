@@ -1,9 +1,21 @@
-<div class="timeline-container">
-    <input class="slider" type="range" min="0" [max]="maxHours" [(ngModel)]="currentHour" (input)="updateSliderValue($event)">
-
-    <p>{{currentHour}} hours</p>
-    <p>Hour: {{currentHour}} ({{getCurrentDayAndHour()}})</p>
-</div>
-  
 <div #map style="height: 700px;"></div>
-  
+
+<mat-card-content>
+    <mat-card>
+  <mat-card-content>
+    <div class="timeline-container">
+      <div class="slider-container">
+        <mat-slider
+            [min]="0"
+            [max]="maxHours"
+            showTickMarks="true"
+            >
+          <input matSliderThumb [(ngModel)]="currentHour" (input)="updateSliderValue($event)"/>
+        </mat-slider>
+        <span class="slider-thumb-label" [style.left.%]="getThumbLabelPosition()">{{getCurrentDayAndHour()}}</span>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+</mat-card-content>
