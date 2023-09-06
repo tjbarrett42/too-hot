@@ -4,8 +4,10 @@ import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { SharedService } from '../shared.service';  // Update with the path to your service
+import { LocationService } from '../location.service';
 import { PreferencesComponent } from '../preferences/preferences.component';
 import * as spoofData from '../../assets/spoof.json'
+import { PlaceSearchCoords } from '../app.component';
 
 interface Location {
     latitude: number;
@@ -71,7 +73,6 @@ interface LatLngElement {
 export class WeatherComponent implements OnInit {
   @ViewChild('map') mapContainer!: ElementRef;
 
-  @Input() preferencesForm: any = [];
   private map!: L.Map;
   private markers: { data: WeatherData, marker: L.Marker }[] = [];
   private elementCache: { [key: string]: L.Rectangle | L.Marker } = {};
@@ -105,12 +106,13 @@ export class WeatherComponent implements OnInit {
     private formBuilder: FormBuilder, 
     private http: HttpClient, 
     private sharedService: SharedService, 
+    private locationService: LocationService,
     private preferencesComponent: PreferencesComponent
   ) { }
 
   ngOnInit() {
-    navigator.geolocation.getCurrentPosition((position) => {
-      this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+    this.locationService.trigger$.subscribe((location: any) => {
+      this.userLocation = { latitude: location.latitude, longitude: location.longitude };
       this.initMap(); // Init the map here after the location is set
       this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
         // console.log('Received in subscription: ', preferenceForm);
@@ -126,7 +128,28 @@ export class WeatherComponent implements OnInit {
         this.onSubmit()
         }
       });
-    });
+    })
+
+    // navigator.geolocation.getCurrentPosition((position) => {
+    //   console.log('position: ', position);
+    //   this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+    //   console.log('userlocation ', this.userLocation);
+    //   this.initMap(); // Init the map here after the location is set
+    //   this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
+    //     // console.log('Received in subscription: ', preferenceForm);
+    //     this.preferenceForm = preferenceForm;
+    //     // console.log('this.prefForm, ', this.preferenceForm);
+    //     // console.log("Is form valid?", this.preferenceForm.valid); // For debugging
+    //     console.log('before reduce ', this.preferenceForm);  // For debugging
+    //     if (this.preferenceForm) { // need to change back to this.preferenceForm.valid
+    //       this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
+    //         acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, toggleValue: curr.toggleValue } as ValuePreference;
+    //         return acc;
+    //     }, {} as Preferences);
+    //     this.onSubmit()
+    //     }
+    //   });
+    // });
   }
 
   initMap() {
@@ -140,6 +163,8 @@ export class WeatherComponent implements OnInit {
       maxZoom: 19,
       attribution: 'Map data © OpenStreetMap contributors'
     }).addTo(this.map);
+
+    L.marker([this.userLocation.latitude, this.userLocation.longitude]).addTo(this.map);
   
     this.map.whenReady(() => {
       this.calculatePoints();
@@ -148,6 +173,10 @@ export class WeatherComponent implements OnInit {
     setTimeout(() => {
       this.map.invalidateSize();
     }, 0);
+  }
+
+  setLocation(location: PlaceSearchCoords) {
+    console.log('setting location: ', location);
   }
   
   calculatePoints() {

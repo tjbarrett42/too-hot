@@ -19,6 +19,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
+import { SearchComponent } from './search/search.component';
+import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 
 @NgModule({
   declarations: [
@@ -40,11 +42,18 @@ import { MatSliderModule } from '@angular/material/slider';
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    MatSliderModule
+    MatSliderModule,
+    SearchComponent,
+    MatDialogModule,
+    
   ],
   providers: [
     SharedService,
-    PreferencesComponent
+    PreferencesComponent,
+    {
+      provide: MatDialogRef,
+      useValue: {}
+    }
   ],
   bootstrap: [AppComponent]
 })

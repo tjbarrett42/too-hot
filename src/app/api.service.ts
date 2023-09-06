@@ -9,7 +9,4 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  getSomeData() {
-    return this.http.get(`${this.apiUrl}/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m`);
-  }
 }

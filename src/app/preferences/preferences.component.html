@@ -1,43 +1,35 @@
 <mat-card>
-  <mat-card-content>
-    <form [formGroup]="preferenceForm">
+  <mat-card-content id="mainCardContent">
+    <form [formGroup]="preferenceForm"> 
       <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
         <mat-card>
           <mat-card-header>
             <mat-card-title>
-              {{ attributeList[i] }}
+              {{ attributeNameList[i] }}
             </mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <div [formGroupName]="i">
-              <!-- Flex container to hold the dropdown and the slider -->
-              <div style="display: flex; align-items: center;">
-                <!-- Dropdown -->
-                <mat-form-field style="margin-right: 16px;">
+              <div id="formFieldsDiv">
+                <mat-form-field id="symbolField">
                   <mat-select formControlName="symbol">
                     <mat-option value="within">=</mat-option>
                     <mat-option value="lessthan">&lt;</mat-option>
                     <mat-option value="greaterthan">&gt;</mat-option>
                   </mat-select>
                 </mat-form-field>
-
-                <!-- Slider -->
-                <div>
-                  <mat-label>{{slider.value}}</mat-label>
-                  <mat-slider min="0" max="100" step="1">
-                    <input matSliderThumb formControlName="value" #slider/>
-                  </mat-slider>
-                </div>
+                <mat-label id="slider-value">{{slider.value}}</mat-label>
+                +/-
+                <mat-form-field id="precisionValueFormField">
+                  <input matInput formControlName="precisionValue" type="number">
+                </mat-form-field>
               </div>
-              <!-- End of flex container -->
-
-              <mat-form-field>
-                <mat-label>+/-</mat-label>
-                <input matInput formControlName="precisionValue" type="number">
-              </mat-form-field>
-
-              <mat-slide-toggle formControlName="toggleValue">
-                On/Off
+              <div id="slider-div">
+                <mat-slider min="0" max="100" step="1" id="slider" class="mySlider">
+                  <input matSliderThumb formControlName="value" #slider/>
+                </mat-slider>
+              </div>
+              <mat-slide-toggle formControlName="toggleValue" id="toggle">
               </mat-slide-toggle>
             </div>
           </mat-card-content>

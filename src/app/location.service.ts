@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
     providedIn: 'root'
 })
 
-export class SharedService {
+export class LocationService {
 
     private trigger = new Subject<FormGroup>();
 

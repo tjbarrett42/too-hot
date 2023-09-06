@@ -11,12 +11,15 @@
    <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
     <mat-icon>share</mat-icon>
   </button>
- </mat-toolbar>
+  </mat-toolbar>
+  <div class="container">
+    <app-search (placeChanged)="updateLocation($event)"></app-search>
+  </div>
   <div style="display: flex; flex-direction: row; height: 100vh;">
     <div style="flex: 1;">
       <app-weather></app-weather>
     </div>
-    <mat-card style="width: 300px;">
+    <mat-card style="width: 400px;">
       <app-preferences (preferencesChanged)="updatePreferences($event)"></app-preferences>
     </mat-card>
   </div>

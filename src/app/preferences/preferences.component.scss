@@ -1,0 +1,62 @@
+#precisionValueFormField {
+    width: 20%;
+    margin-bottom: -1.25em;
+    padding: 0 10px 0 10px;
+}
+
+#toggle {
+    position: absolute; 
+    top: 20px; 
+    right: 20px;
+}
+
+#slider {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+}
+
+#slider-div {
+    text-align: center;
+}
+
+#slider-value {
+    font-size: x-large;
+}
+
+#symbolField {
+    width: 20%;
+    margin-bottom: -1.25em;
+    padding: 0 10px 0 10px;
+
+}
+
+#formFieldsDiv {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mainCardContent {
+    max-height: calc(100vh - 100px); // You can adjust this based on your needs
+    overflow-y: auto;
+}
+
+::ng-deep {
+    .mat-slider-visual-thumb {
+      height: 5px; // change as per your needs
+      width: 12px; // change as per your needs
+    }
+  
+    .mat-slider-thumb-label {
+      height: 12px; // change as per your needs
+      width: 12px; // change as per your needs
+      line-height: 12px; // make sure this is the same as height and width
+    }
+  }
+
+  ::ng-deep .mat-form-field-wrapper{
+    margin-bottom: -1.25em;
+ }
+ 
