@@ -6,15 +6,15 @@ import { Subject } from 'rxjs';
     providedIn: 'root'
 })
 
-export class LocationService {
+export class GenerateService {
 
-    private trigger = new Subject<FormGroup>();
+    private trigger = new Subject<void>();
 
     // Enable subscribing to the event
     trigger$ = this.trigger.asObservable();
 
     // Function to trigger the event
-    triggerEvent(data: any) {
-        this.trigger.next(data);
+    triggerEvent() {
+        this.trigger.next();
     }
 }

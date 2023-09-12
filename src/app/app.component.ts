@@ -1,14 +1,15 @@
 import { Component } from '@angular/core';
 import { ApiService } from './api.service';
 import { WeatherComponent } from './weather/weather.component';
-import { SharedService } from './shared.service';
 import { LocationService } from './location.service';
 import { Subject } from 'rxjs';
 import { SearchComponent } from './search/search.component';
+import { PreferenceService } from './preference.service';
+import { GenerateService } from './generate.service';
 
 export interface PlaceSearchCoords {
-  latitude: any;
-  longitude: any;
+  lat: any;
+  lng: any;
 }
 
 @Component({
@@ -22,8 +23,9 @@ export class AppComponent {
   
   constructor(
     private apiService: ApiService,
-    private preferenceService: SharedService,
-    private locationService: LocationService
+    private preferenceService: PreferenceService,
+    private locationService: LocationService,
+    private generateService: GenerateService
   ) { }
 
   ngOnInit() {
@@ -40,6 +42,10 @@ export class AppComponent {
 
   updateLocation(location: any){
     this.locationService.triggerEvent(location);
+  }
+
+  generateResults(){
+    this.generateService.triggerEvent();
   }
 
   eventsSubject: Subject<void> = new Subject<void>();

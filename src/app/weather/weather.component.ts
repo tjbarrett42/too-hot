@@ -2,12 +2,13 @@ import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as L from 'leaflet';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
-import { SharedService } from '../shared.service';  // Update with the path to your service
+import { Observable, Subscription, forkJoin } from 'rxjs';
+import { PreferenceService } from '../preference.service';  // Update with the path to your service
 import { LocationService } from '../location.service';
 import { PreferencesComponent } from '../preferences/preferences.component';
 import * as spoofData from '../../assets/spoof.json'
 import { PlaceSearchCoords } from '../app.component';
+import { GenerateService } from '../generate.service';
 
 interface Location {
     latitude: number;
@@ -47,9 +48,15 @@ interface WeatherData {
 interface Preferences {
   temperature_2m: ValuePreference;
   relativeHumidity_2m: ValuePreference;
+  precipitation_probability: ValuePreference;
+  cloudcover: ValuePreference;
+  windspeed_10m: ValuePreference;
+  soil_moisture_0_1cm: ValuePreference;
+  uv_index: ValuePreference;
 }
 
 interface ValuePreference {
+  toggleValue: boolean;
   minValue: number;
   maxValue: number;
 }
@@ -88,71 +95,98 @@ export class WeatherComponent implements OnInit {
   preferenceForm: any;
   preferences: Preferences = {
     temperature_2m: {
+      toggleValue: true,
       minValue: 0,
-      maxValue: 50
+      maxValue: 1
     },
     relativeHumidity_2m: {
+      toggleValue: true,
       minValue: 0,
-      maxValue: 50
-    }
-  };
+      maxValue: 1
+    },
+    precipitation_probability: {
+      toggleValue: true,
+      minValue: 0,
+      maxValue: 1
+    },
+    cloudcover: {
+      toggleValue: true,
+      minValue: 0,
+      maxValue: 1
+    },
+    windspeed_10m: {
+      toggleValue: true,
+      minValue: 0,
+      maxValue: 1
+    },
+    soil_moisture_0_1cm: {
+      toggleValue: true,
+      minValue: 0,
+      maxValue: 1
+    },
+    uv_index: {
+      toggleValue: true,
+      minValue: 0,
+      maxValue: 1
+    },
+  }
   tickInterval: number = 24;
   spoofing: boolean = true;
   heatMapColors: string[] = [
     ''
   ]
 
+  private subscriptions: Subscription[] = [];
+
   constructor(
     private formBuilder: FormBuilder, 
     private http: HttpClient, 
-    private sharedService: SharedService, 
+    private preferenceService: PreferenceService, 
     private locationService: LocationService,
+    private generateService: GenerateService,
     private preferencesComponent: PreferencesComponent
   ) { }
 
   ngOnInit() {
-    this.locationService.trigger$.subscribe((location: any) => {
-      this.userLocation = { latitude: location.latitude, longitude: location.longitude };
+    const locationSubscription = this.locationService.trigger$.subscribe((location: any) => {
+      this.userLocation = { latitude: location.lat, longitude: location.lng };
       this.initMap(); // Init the map here after the location is set
-      this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
-        // console.log('Received in subscription: ', preferenceForm);
-        this.preferenceForm = preferenceForm;
-        // console.log('this.prefForm, ', this.preferenceForm);
-        // console.log("Is form valid?", this.preferenceForm.valid); // For debugging
-        console.log('before reduce ', this.preferenceForm);  // For debugging
-        if (this.preferenceForm) { // need to change back to this.preferenceForm.valid
-          this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
-            acc[curr.attribute] = {minValue: curr.minValue, maxValue: curr.maxValue, toggleValue: curr.toggleValue } as ValuePreference;
-            return acc;
-        }, {} as Preferences);
-        this.onSubmit()
-        }
+      this.map.whenReady(() => {
+        this.calculatePoints();
       });
-    })
 
-    // navigator.geolocation.getCurrentPosition((position) => {
-    //   console.log('position: ', position);
-    //   this.userLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
-    //   console.log('userlocation ', this.userLocation);
-    //   this.initMap(); // Init the map here after the location is set
-    //   this.sharedService.trigger$.subscribe((preferenceForm: FormGroup) => {
-    //     // console.log('Received in subscription: ', preferenceForm);
-    //     this.preferenceForm = preferenceForm;
-    //     // console.log('this.prefForm, ', this.preferenceForm);
-    //     // console.log("Is form valid?", this.preferenceForm.valid); // For debugging
-    //     console.log('before reduce ', this.preferenceForm);  // For debugging
-    //     if (this.preferenceForm) { // need to change back to this.preferenceForm.valid
-    //       this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
-    //         acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, toggleValue: curr.toggleValue } as ValuePreference;
-    //         return acc;
-    //     }, {} as Preferences);
-    //     this.onSubmit()
-    //     }
-    //   });
-    // });
+      const generateSubscription = this.generateService.trigger$.subscribe(() => {
+        this.fetchWeatherData();
+        this.subscriptions.forEach(sub => sub.unsubscribe());
+        this.subscriptions = [];
+        console.log('curr pref: ', this.preferences);
+        if (this.preferenceForm) {
+          this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
+            acc[curr.attribute] = {minValue: curr.minValue, maxValue: curr.maxValue, toggleValue: curr.toggleValue };
+            return acc;
+        })};
+        this.onSubmit();
+        
+        const preferenceSubscription = this.preferenceService.trigger$.subscribe((preferenceForm: FormGroup) => {
+          this.preferenceForm = preferenceForm;
+          if (this.preferenceForm) {
+            this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
+              acc[curr.attribute] = {minValue: curr.minValue, maxValue: curr.maxValue, toggleValue: curr.toggleValue };
+              return acc;
+          }, {});
+          this.onSubmit()
+          }
+        });
+        // this.subscriptions.push(preferenceSubscription);
+      });
+      this.subscriptions.push(generateSubscription);
+    });
   }
 
   initMap() {
+    if (this.map) {
+      this.map.remove();
+    }
     this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
 
     L.control.scale().addTo(this.map);
@@ -165,10 +199,6 @@ export class WeatherComponent implements OnInit {
     }).addTo(this.map);
 
     L.marker([this.userLocation.latitude, this.userLocation.longitude]).addTo(this.map);
-  
-    this.map.whenReady(() => {
-      this.calculatePoints();
-    });
   
     setTimeout(() => {
       this.map.invalidateSize();
@@ -183,8 +213,6 @@ export class WeatherComponent implements OnInit {
     this.distance = 50;
     this.pointsToCheck = [];
     this.pointsToCheck = this.generateGrid(this.userLocation, 30, this.distance);
-  
-    this.fetchWeatherData(); // Fetch the data after calculating points
   }
 
   generateGrid(center: Location, gridSize: number, distance: number): L.Point[] {
@@ -208,6 +236,8 @@ export class WeatherComponent implements OnInit {
 
   fetchWeatherData() {
     let weatherObservables: Observable<WeatherData>[] = [];
+    this.weatherData = [];
+    this.latLngElements = [];
 
     if (this.spoofing) {
       this.pointsToCheck.forEach((point) => {
@@ -219,6 +249,7 @@ export class WeatherComponent implements OnInit {
         this.weatherData = data as WeatherData[];
         console.log(this.weatherData);
         this.displayLocations();
+        this.onSubmit()
       });
     } else {
       this.pointsToCheck.forEach((point) => {
@@ -253,6 +284,7 @@ export class WeatherComponent implements OnInit {
   }
 
   displayLocations() { // Build rectangle elements and gets popups bound and data bound to each element
+    console.log('update pref ', this.preferences);
     const currentZoomLevel = this.map.getZoom();
     const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
     const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
@@ -349,7 +381,6 @@ export class WeatherComponent implements OnInit {
       let stroke = true;
       let prefOpacity: number = 0;
       let unprefOpacity: number = 0.5;
-  
       Object.entries(this.preferences).forEach(([key, keyData], index) => {
         if (keyData.toggleValue){
           let minValue = keyData.minValue;
@@ -405,5 +436,4 @@ export class WeatherComponent implements OnInit {
   getThumbLabelPosition(): number {
     return (this.currentHour / this.maxHours) * 100;
   }
-
 }

@@ -13,7 +13,7 @@
   </button>
   </mat-toolbar>
   <div class="container">
-    <app-search (placeChanged)="updateLocation($event)"></app-search>
+    <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()"></app-search>
   </div>
   <div style="display: flex; flex-direction: row; height: 100vh;">
     <div style="flex: 1;">

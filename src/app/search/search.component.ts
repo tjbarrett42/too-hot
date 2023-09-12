@@ -3,6 +3,9 @@ import { Component, OnInit, ElementRef, ViewChild, Input, Output, EventEmitter, 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { PlaceSearchCoords } from '../app.component';
+import { MatIconModule } from '@angular/material/icon';
+import { PlacesEventsHandlers } from 'places.js';
+import { concat } from 'rxjs';
 
 /// <reference types="@types/googlemaps" />
 
@@ -11,39 +14,74 @@ import { PlaceSearchCoords } from '../app.component';
   standalone: true,
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
-  imports: [CommonModule, MatFormFieldModule, MatInputModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule],
   styles: [
 
   ]
 })
 export class SearchComponent implements OnInit {
-@ViewChild('inputField') inputField!: ElementRef;
+  @ViewChild('inputField') inputField!: ElementRef;
 
-  @Input() placeholder = '';
+  @Input() placeholder: string = '';
+  @Input() currentCoords: string = '';
 
   @Output() placeChanged = new EventEmitter<PlaceSearchCoords>();
+  @Output() coordinatesRequested = new EventEmitter<any>();
+  @Output() generateMapRequested = new EventEmitter<any>();
 
   autocomplete: google.maps.places.Autocomplete | undefined;
+  initialLocation: any;
+  result: PlaceSearchCoords | undefined;
+  defaultBounds: any;
 
   constructor(private ngZone: NgZone) { }
   ngOnInit(): void {}
 
   ngAfterViewInit() {
-    this.autocomplete = new google.maps.places.Autocomplete(this.inputField.nativeElement);
+    this.updateHome();
+  
 
+    const options = {
+      bounds: this.defaultBounds
+    }
+
+    this.autocomplete = new google.maps.places.Autocomplete(this.inputField.nativeElement, options);
     this.autocomplete.addListener('place_changed', () => {
       const place = this.autocomplete?.getPlace();
-
-      const result: PlaceSearchCoords = {
-            latitude: place?.geometry?.location?.lat(),
-            longitude: place?.geometry?.location?.lng()
+      this.result = {
+            lat: place?.geometry?.location?.lat(),
+            lng: place?.geometry?.location?.lng()
       };
-
-      this.ngZone.run(() => {
-        this.placeChanged.emit(result);
-      })
-      
-      console.log(place);
+      this.submitLocation();
     });
+  }
+
+  updateHome() {
+    navigator.geolocation.getCurrentPosition((position) => {
+      this.result = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      }
+      this.defaultBounds = {
+        north: this.result.lat + 0.1,
+        south: this.result.lat - 0.1,
+        east: this.result.lng + 0.1,
+        west: this.result.lng - 0.1
+      }
+      this.placeholder = 'here (default)';
+      this.submitLocation();
+    });
+  };
+
+  submitLocation() {
+    this.ngZone.run(() => {
+      this.placeChanged.emit(this.result);
+    })
+  }
+
+  generateMap() {
+    this.ngZone.run(() => {
+      this.generateMapRequested.emit();
+    })
   }
 }

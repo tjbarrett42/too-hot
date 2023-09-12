@@ -1,4 +1,12 @@
 <h1 mat-dialog-title>Select Location</h1>
-<mat-form-field appearance="outline"> 
-    <input #inputField matInput [placeholder]="placeholder" />
-</mat-form-field>
+<div>
+    <button (click)="updateHome()" mat-fab color="secondary">
+        <mat-icon>room</mat-icon>
+    </button>
+    <mat-form-field appearance="outline"> 
+        <input #inputField matInput [placeholder]="placeholder" [value]="currentCoords" />
+    </mat-form-field>
+    <button (click)="generateMap()" mat-fab color="primary">
+        <mat-icon>input</mat-icon>
+    </button>
+</div>

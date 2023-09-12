@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
     providedIn: 'root'
 })
 
-export class SharedService {
+export class PreferenceService {
 
     private trigger = new Subject<FormGroup>();
 
@@ -15,7 +15,6 @@ export class SharedService {
 
     // Function to trigger the event
     triggerEvent(data: any) {
-        console.log('About to emit: ', data);
         this.trigger.next(data);
     }
 }
