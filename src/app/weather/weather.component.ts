@@ -50,9 +50,8 @@ interface Preferences {
 }
 
 interface ValuePreference {
-  value: number;
-  symbol: string;
-  precisionValue: number;
+  minValue: number;
+  maxValue: number;
 }
 
 interface MapElement {
@@ -89,18 +88,19 @@ export class WeatherComponent implements OnInit {
   preferenceForm: any;
   preferences: Preferences = {
     temperature_2m: {
-      value: 0,
-      symbol: `+-`,
-      precisionValue: 5
+      minValue: 0,
+      maxValue: 50
     },
     relativeHumidity_2m: {
-      value: 0,
-      symbol: `+-`,
-      precisionValue: 5
+      minValue: 0,
+      maxValue: 50
     }
   };
   tickInterval: number = 24;
   spoofing: boolean = true;
+  heatMapColors: string[] = [
+    ''
+  ]
 
   constructor(
     private formBuilder: FormBuilder, 
@@ -122,7 +122,7 @@ export class WeatherComponent implements OnInit {
         console.log('before reduce ', this.preferenceForm);  // For debugging
         if (this.preferenceForm) { // need to change back to this.preferenceForm.valid
           this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
-            acc[curr.attribute] = {value: curr.value, symbol: curr.symbol, precisionValue: curr.precisionValue, toggleValue: curr.toggleValue } as ValuePreference;
+            acc[curr.attribute] = {minValue: curr.minValue, maxValue: curr.maxValue, toggleValue: curr.toggleValue } as ValuePreference;
             return acc;
         }, {} as Preferences);
         this.onSubmit()
@@ -244,81 +244,81 @@ export class WeatherComponent implements OnInit {
     this.removeLocations();
   } 
 
-removeLocations() {
-    this.elements.forEach(({ element }) => {
-        this.map.removeLayer(element);
+  removeLocations() {
+      this.elements.forEach(({ element }) => {
+          this.map.removeLayer(element);
+      });
+      this.elements = [];
+      this.latLngElements = [];
+  }
+
+  displayLocations() { // Build rectangle elements and gets popups bound and data bound to each element
+    const currentZoomLevel = this.map.getZoom();
+    const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
+    const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
+
+    this.weatherData.forEach((data: WeatherData, index: number) => {
+        const latLng = this.latLngElements[index].latLng;
+
+        const temperature = data.hourly.temperature_2m[this.currentHour];
+        const humidity = data.hourly.relativehumidity_2m[this.currentHour];
+        const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
+        const cloudcover = data.hourly.cloudcover[this.currentHour];
+        const windspeed_10m = data.hourly.windspeed_10m[this.currentHour];
+        const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
+        const uv_index = data.hourly.uv_index[this.currentHour];
+
+        let color = '#7343BE'; // default to green
+
+        const centerPoint = this.map.latLngToContainerPoint(latLng);
+
+        // Calculate the pixel coordinates of the corners of the rectangle
+        const northWestPoint = L.point(centerPoint.x - halfDistance, centerPoint.y - halfDistance);
+        const southEastPoint = L.point(centerPoint.x + halfDistance, centerPoint.y + halfDistance);
+
+        // Convert these pixel coordinates back to lat-lng
+        const northWestLatLng = this.map.containerPointToLatLng(northWestPoint);
+        const southEastLatLng = this.map.containerPointToLatLng(southEastPoint);
+
+        // Create bounds for the rectangle
+        const bounds: L.LatLngBoundsExpression = [[northWestLatLng.lat, northWestLatLng.lng], [southEastLatLng.lat, southEastLatLng.lng]];
+
+        const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5, stroke: false})
+        .bindPopup(
+          `Location: ${data.latitude}, ${data.longitude}
+            <br>Temperature: ${temperature}°F
+            <br>Humidity: ${humidity}%
+            <br>Precip Chance: ${precipitation_probability}%
+            <br>Cloudcover: ${cloudcover}%
+            <br>Windspeed: ${windspeed_10m}mph
+            <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+            <br>UV Index: ${uv_index}`
+          )
+        .bindTooltip(
+          `Location: ${data.latitude}, ${data.longitude}
+            <br>Temperature: ${temperature}°F
+            <br>Humidity: ${humidity}%
+            <br>Precip Chance: ${precipitation_probability}%
+            <br>Cloudcover: ${cloudcover}%
+            <br>Windspeed: ${windspeed_10m}mph
+            <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
+            <br>UV Index: ${uv_index}`
+          )
+        .addTo(this.map);
+
+        data.longitude = latLng.lng;
+        data.latitude = latLng.lat;
+
+        this.elements.push({ data: data, element: rectangle });
     });
-    this.elements = [];
-    this.latLngElements = [];
-}
 
-displayLocations() { // Build rectangle elements and gets popups bound and data bound to each element
-  const currentZoomLevel = this.map.getZoom();
-  const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
-  const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
+    // Set the center of the map to the user's location
+    this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
+  }
 
-  this.weatherData.forEach((data: WeatherData, index: number) => {
-      const latLng = this.latLngElements[index].latLng;
-
-      const temperature = data.hourly.temperature_2m[this.currentHour];
-      const humidity = data.hourly.relativehumidity_2m[this.currentHour];
-      const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
-      const cloudcover = data.hourly.cloudcover[this.currentHour];
-      const windspeed_10m = data.hourly.windspeed_10m[this.currentHour];
-      const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
-      const uv_index = data.hourly.uv_index[this.currentHour];
-
-      let color = '#7343BE'; // default to green
-
-      const centerPoint = this.map.latLngToContainerPoint(latLng);
-
-      // Calculate the pixel coordinates of the corners of the rectangle
-      const northWestPoint = L.point(centerPoint.x - halfDistance, centerPoint.y - halfDistance);
-      const southEastPoint = L.point(centerPoint.x + halfDistance, centerPoint.y + halfDistance);
-
-      // Convert these pixel coordinates back to lat-lng
-      const northWestLatLng = this.map.containerPointToLatLng(northWestPoint);
-      const southEastLatLng = this.map.containerPointToLatLng(southEastPoint);
-
-      // Create bounds for the rectangle
-      const bounds: L.LatLngBoundsExpression = [[northWestLatLng.lat, northWestLatLng.lng], [southEastLatLng.lat, southEastLatLng.lng]];
-
-      const rectangle = L.rectangle(bounds, { color, fillOpacity: 0.5, stroke: false})
-      .bindPopup(
-        `Location: ${data.latitude}, ${data.longitude}
-          <br>Temperature: ${temperature}°F
-          <br>Humidity: ${humidity}%
-          <br>Precip Chance: ${precipitation_probability}%
-          <br>Cloudcover: ${cloudcover}%
-          <br>Windspeed: ${windspeed_10m}mph
-          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
-          <br>UV Index: ${uv_index}`
-        )
-      .bindTooltip(
-        `Location: ${data.latitude}, ${data.longitude}
-          <br>Temperature: ${temperature}°F
-          <br>Humidity: ${humidity}%
-          <br>Precip Chance: ${precipitation_probability}%
-          <br>Cloudcover: ${cloudcover}%
-          <br>Windspeed: ${windspeed_10m}mph
-          <br>Soil Moisture: ${soil_moisture_0_1cm}m3/m3
-          <br>UV Index: ${uv_index}`
-        )
-      .addTo(this.map);
-
-      data.longitude = latLng.lng;
-      data.latitude = latLng.lat;
-
-      this.elements.push({ data: data, element: rectangle });
-  });
-
-  // Set the center of the map to the user's location
-  this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
-}
-
-onSubmit() {
-  this.updateWeatherDataOnMap();  
-}
+  onSubmit() {
+    this.updateWeatherDataOnMap();  
+  }
 
   updateSliderValue(event: any) {
     this.currentHour = Number(event.target.value);
@@ -329,7 +329,6 @@ onSubmit() {
     this.elements.forEach(({ data, element }) => {
       // Generate a cache key for each set of latitude and longitude
       const cacheKey = `${data.latitude}-${data.longitude}-${this.currentHour}`;
-  
       // Check if element is already cached
       let cachedElement: L.Rectangle | L.Marker | undefined = this.elementCache[cacheKey];
   
@@ -339,7 +338,6 @@ onSubmit() {
         this.elementCache[cacheKey] = cachedElement;
       }
   
-      // Existing logic
       const temperature = data.hourly.temperature_2m[this.currentHour];
       const humidity = data.hourly.relativehumidity_2m[this.currentHour];
       const precipitation_probability = data.hourly.precipitation_probability[this.currentHour];
@@ -348,47 +346,30 @@ onSubmit() {
       const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
       const uv_index = data.hourly.uv_index[this.currentHour];
   
-      let attributes = 0;
       let stroke = true;
-      let newOpacity: number = 0;
+      let prefOpacity: number = 0;
+      let unprefOpacity: number = 0.5;
   
       Object.entries(this.preferences).forEach(([key, keyData], index) => {
         if (keyData.toggleValue){
-          attributes += 1;
-          let value = keyData.value;
-          let symbol = keyData.symbol;
-          let precisionValue = keyData.precisionValue;
+          let minValue = keyData.minValue;
+          let maxValue = keyData.maxValue;
   
           const attributeName = key;
-          const currentValue = data.hourly[attributeName  as keyof typeof data.hourly][this.currentHour];
-          const difference = (currentValue as number) - value;
-  
-          switch (symbol) {
-            case 'within':
-              if (difference > precisionValue || difference < precisionValue * -1) { 
-                stroke = false;
-              } else {
-                newOpacity = 0.2;
-              }
-              break;
-            case 'lessthan':
-              if (currentValue > value) { 
-                stroke = false;   
-              } else {
-                newOpacity = 0.2;
-              }
-              break;
-            case 'greaterthan':
-              if (currentValue < value) {
-                stroke = false;
-              }
-              break;
+          const currentValue = data.hourly[attributeName as keyof typeof data.hourly][this.currentHour];
+          
+          // Can optimize to look better with multiple colors
+          if (currentValue >= minValue && currentValue <= maxValue) {
+            prefOpacity = 0.5;
+          } else {
+            stroke = false;
+            unprefOpacity = unprefOpacity - 0.2;
           }
         }
       });
   
       if (cachedElement instanceof L.Rectangle) {
-        cachedElement.setStyle({ color: '#7343BE', fillOpacity: newOpacity, stroke: stroke });
+        cachedElement.setStyle({ color: '#7343BE', fillOpacity: Math.min(prefOpacity, unprefOpacity), stroke: stroke , weight: 1});
         cachedElement.setPopupContent(
           `Location: ${data.latitude}, ${data.longitude}
           <br>Temperature: ${temperature}°F
@@ -416,11 +397,8 @@ onSubmit() {
   getCurrentDayAndHour(): string {
     // Create a new date that is the forecast start plus the number of hours
     let date = new Date(this.forecastStart.getTime() + this.currentHour * 60 * 60 * 1000);
-
-    // Format the date
     let day = date.toLocaleString('default', { weekday: 'long' }); // e.g. Monday
     let hour = date.getHours();
-
     return `${day}, ${hour}:00`;
   }
 

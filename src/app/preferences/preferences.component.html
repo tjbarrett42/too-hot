@@ -5,28 +5,18 @@
         <mat-card>
           <mat-card-header>
             <mat-card-title>
-              {{ attributeNameList[i] }}
+              {{ attributeList[i][1] }}
             </mat-card-title>
           </mat-card-header>
           <mat-card-content>
             <div [formGroupName]="i">
               <div id="formFieldsDiv">
-                <mat-form-field id="symbolField">
-                  <mat-select formControlName="symbol">
-                    <mat-option value="within">=</mat-option>
-                    <mat-option value="lessthan">&lt;</mat-option>
-                    <mat-option value="greaterthan">&gt;</mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-label id="slider-value">{{slider.value}}</mat-label>
-                +/-
-                <mat-form-field id="precisionValueFormField">
-                  <input matInput formControlName="precisionValue" type="number">
-                </mat-form-field>
+                <mat-label id="slider-value">{{minSlider.value}} {{attributeList[i][2]}} - {{maxSlider.value}} {{attributeList[i][2]}}</mat-label>
               </div>
               <div id="slider-div">
-                <mat-slider min="0" max="100" step="1" id="slider" class="mySlider">
-                  <input matSliderThumb formControlName="value" #slider/>
+                <mat-slider min={{attributeList[i][3]}} max={{attributeList[i][4]}} step={{attributeList[i][5]}} id="slider" class="mySlider">
+                  <input matSliderStartThumb formControlName="minValue" #minSlider/>
+                  <input matSliderEndThumb formControlName="maxValue" #maxSlider/>
                 </mat-slider>
               </div>
               <mat-slide-toggle formControlName="toggleValue" id="toggle">
