@@ -9,6 +9,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIcon } from '@angular/material/icon';
 import { MatIconModule } from '@angular/material/icon';
 
+import { SocialAuthService } from "@abacritt/angularx-social-login";
+import { GoogleLoginProvider } from "@abacritt/angularx-social-login";
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
   selector: 'app-navbar',
@@ -16,12 +20,19 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrls: ['navbar.component.scss']
 })
 export class NavbarComponent implements OnInit {
-  constructor(public dialog: MatDialog) {
+  user: any;
+  loggedIn: any;
 
+  constructor(public dialog: MatDialog, private authService: SocialAuthService) {
+    
   }
-
   ngOnInit() {
     this.openDialog();
+    this.authService.authState.subscribe((user) => {
+      this.user = user;
+      this.loggedIn = (user != null);
+      console.log(this.user);
+    })
   }
 
   openDialog(): void {
@@ -31,6 +42,10 @@ export class NavbarComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       console.log('The dialog was closed');
     });
+  }
+
+  refreshToken(): void {
+    this.authService.refreshAuthToken(GoogleLoginProvider.PROVIDER_ID);
   }
 }
 

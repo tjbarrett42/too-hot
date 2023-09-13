@@ -1,8 +1,9 @@
 <p>
   <mat-toolbar color="primary">
-    <button mat-icon-button class="example-icon">
-      <mat-icon>person</mat-icon>
-    </button>
+    <asl-google-signin-button type='icon' size='medium' *ngIf="!user" shape="circle"></asl-google-signin-button>
+    <div *ngIf="user">
+      {{ user.name }}
+    </div>
     <span>TooHot</span>
     <span class="example-spacer"></span>
     <!-- <button mat-icon-button class="example-icon favorite-icon">

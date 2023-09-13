@@ -8,10 +8,14 @@ import { PreferenceService } from './preference.service';
 import { GenerateService } from './generate.service';
 import { NavbarComponent } from './navbar/navbar.component'
 
+
+
 export interface PlaceSearchCoords {
   lat: any;
   lng: any;
 }
+
+
 
 @Component({
   selector: 'app-root',
@@ -28,7 +32,7 @@ export class AppComponent {
     private locationService: LocationService,
     private generateService: GenerateService
   ) { }
-
+  
   ngOnInit() {
     
   }

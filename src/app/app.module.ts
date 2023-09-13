@@ -1,10 +1,16 @@
+
+import { SocialLoginModule, SocialAuthServiceConfig } from '@abacritt/angularx-social-login';
+import {
+  GoogleLoginProvider
+} from '@abacritt/angularx-social-login';
+import {  GoogleSigninButtonModule } from '@abacritt/angularx-social-login';
+
+
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
-
-
 import { AppComponent } from './app.component';
 import { WeatherComponent } from './weather/weather.component';
 import { PreferencesComponent } from './preferences/preferences.component';
@@ -24,6 +30,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { GenerateService } from './generate.service';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './navbar/navbar.component';
+
 
 @NgModule({
   declarations: [
@@ -49,8 +56,10 @@ import { NavbarComponent } from './navbar/navbar.component';
     MatSliderModule,
     SearchComponent,
     MatDialogModule,
-    MatButtonModule
-    
+    MatButtonModule,
+    SocialLoginModule,
+    GoogleSigninButtonModule
+  
   ],
   providers: [
     PreferenceService,
@@ -59,6 +68,23 @@ import { NavbarComponent } from './navbar/navbar.component';
     {
       provide: MatDialogRef,
       useValue: {}
+    },
+    {
+      provide: 'SocialAuthServiceConfig',
+      useValue: {
+        autoLogin: false,
+        providers: [
+          {
+            id: GoogleLoginProvider.PROVIDER_ID,
+            provider: new GoogleLoginProvider(
+              '283648574519-dtuo7hds214qmtr77d5egm6v76dundco.apps.googleusercontent.com'
+            )
+          }
+        ],
+        onError: (err) => {
+          console.error(err);
+        }
+      } as SocialAuthServiceConfig,
     }
   ],
   bootstrap: [AppComponent]
