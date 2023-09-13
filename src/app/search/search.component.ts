@@ -6,6 +6,8 @@ import { PlaceSearchCoords } from '../app.component';
 import { MatIconModule } from '@angular/material/icon';
 import { PlacesEventsHandlers } from 'places.js';
 import { concat } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+
 
 /// <reference types="@types/googlemaps" />
 
@@ -14,7 +16,7 @@ import { concat } from 'rxjs';
   standalone: true,
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
-  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
   styles: [
 
   ]

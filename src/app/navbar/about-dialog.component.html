@@ -1,0 +1,29 @@
+<h1 mat-dialog-title>About TooHot</h1>
+<div mat-dialog-content>
+  <h2>How to use this app</h2>
+  <p>Select a location and generate the grid data, then toggle and edit the weather preferences. Squares with a solid box around them
+    indicate 100% preference satisfaction. The shades become progressively more transparent as the fewer toggled preferences are satisfied 
+    for that location.
+  </p>
+  <br/>
+  
+  <h2>Who is this for?</h2>
+  <p>After living on the road exploring the public lands of the western US, I found it increasingly valuable to quickly 
+    discern a preferred combination of weather variables for a pleasant experience. From avoiding rain to seeking sunshine, 
+    multiple weather maps would have to be simultaneously consulted to find the perfect overlap. Additionally, it was 
+    difficult to not only find a place, but a future time where these conditions were satisfied.
+  </p>
+  <p>
+    Given this challenge, TooHot was created as a weather data aggregator to present overlapping variables more easily than referring to 
+    multiple maps (and timeframes) at once.
+  </p>
+  <br/>
+  <h2>How does it work?</h2>
+  <p>Weather data is sourced from the OpenMeteo API and transformed into a topographically aligned grid of datapoints. Each point contains
+    information for each variable at each hour for a week, which is then sorted upon by the preferences and the current hour and rendered visually.
+  </p>
+  <p>Caching it used to optimize the speed of these manipulations and reduce strain on the browser.</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">Close</button>
+</div>

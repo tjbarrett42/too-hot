@@ -22,12 +22,15 @@ import { MatSliderModule } from '@angular/material/slider';
 import { SearchComponent } from './search/search.component';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { GenerateService } from './generate.service';
+import { MatButtonModule } from '@angular/material/button';
+import { NavbarComponent } from './navbar/navbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     WeatherComponent,
-    PreferencesComponent
+    PreferencesComponent,
+    NavbarComponent
   ],
   imports: [
     BrowserModule, 
@@ -46,6 +49,7 @@ import { GenerateService } from './generate.service';
     MatSliderModule,
     SearchComponent,
     MatDialogModule,
+    MatButtonModule
     
   ],
   providers: [

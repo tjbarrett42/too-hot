@@ -22,7 +22,7 @@ export class PreferencesComponent {
   attributeList: string[][] = [
     ['temperature_2m', 'Temperature', 'F°', '-50', '150'], 
     ['relativehumidity_2m', 'Humidity', '%', '0', '100', '1'], 
-    ['precipitation_probability', 'Precipitation Probability', '%', '0', '100', '1'], 
+    ['precipitation_probability', 'Precipitation', '%', '0', '100', '1'], 
     ['cloudcover', 'Cloudcover', '%', '0', '100', '1'], 
     ['windspeed_10m', 'Windspeed', 'mph', '0', '100', '1'], 
     ['soil_moisture_0_1cm', 'Soil Moisture', 'm3/m3', '0', '1', '0.01'], 

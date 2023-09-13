@@ -1,22 +1,10 @@
 <div>
-  <mat-toolbar>
-    <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
-     <mat-icon>menu</mat-icon>
-   </button>
-   <span>My App</span>
-   <span class="example-spacer"></span>
-   <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
-     <mat-icon>favorite</mat-icon>
-   </button>
-   <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
-    <mat-icon>share</mat-icon>
-  </button>
-  </mat-toolbar>
+  <app-navbar></app-navbar>
   <div class="container">
     <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()"></app-search>
   </div>
-  <div style="display: flex; flex-direction: row; height: 100vh;">
-    <div style="flex: 1;">
+  <div>
+    <div>
       <app-weather></app-weather>
     </div>
     <mat-card style="width: 400px;">

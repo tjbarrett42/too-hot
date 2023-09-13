@@ -5,21 +5,24 @@
         <mat-card>
           <mat-card-header>
             <mat-card-title>
-              {{ attributeList[i][1] }}
+              {{ attributeList[i][1] }} ({{minSlider.value}}-{{maxSlider.value}}{{attributeList[i][2]}})
             </mat-card-title>
           </mat-card-header>
           <mat-card-content>
-            <div [formGroupName]="i">
-              <div id="formFieldsDiv">
-                <mat-label id="slider-value">{{minSlider.value}} {{attributeList[i][2]}} - {{maxSlider.value}} {{attributeList[i][2]}}</mat-label>
-              </div>
+            <div [formGroupName]="i" id="formGroupDiv">
               <div id="slider-div">
-                <mat-slider min={{attributeList[i][3]}} max={{attributeList[i][4]}} step={{attributeList[i][5]}} id="slider" class="mySlider">
+                <mat-slider 
+                  min={{attributeList[i][3]}} 
+                  max={{attributeList[i][4]}} 
+                  step={{attributeList[i][5]}} 
+                  id="slider" 
+                  class="mySlider"
+                  [disabled]="!toggle.checked">
                   <input matSliderStartThumb formControlName="minValue" #minSlider/>
                   <input matSliderEndThumb formControlName="maxValue" #maxSlider/>
                 </mat-slider>
               </div>
-              <mat-slide-toggle formControlName="toggleValue" id="toggle">
+              <mat-slide-toggle formControlName="toggleValue" id="toggle" #toggle>
               </mat-slide-toggle>
             </div>
           </mat-card-content>

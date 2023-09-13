@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { SearchComponent } from './search/search.component';
 import { PreferenceService } from './preference.service';
 import { GenerateService } from './generate.service';
+import { NavbarComponent } from './navbar/navbar.component'
 
 export interface PlaceSearchCoords {
   lat: any;
