@@ -23,7 +23,7 @@ export class NavbarComponent implements OnInit {
   user: any;
   loggedIn: any;
 
-  constructor(public dialog: MatDialog, private authService: SocialAuthService) {
+  constructor(public dialog: MatDialog, private authService: SocialAuthService, private http: HttpClient) {
     
   }
   ngOnInit() {
@@ -31,7 +31,7 @@ export class NavbarComponent implements OnInit {
     this.authService.authState.subscribe((user) => {
       this.user = user;
       this.loggedIn = (user != null);
-      console.log(this.user);
+      this.onGoogleSignInSuccess(user); // This is the token we need to send to the backend
     })
   }
 
@@ -46,6 +46,15 @@ export class NavbarComponent implements OnInit {
 
   refreshToken(): void {
     this.authService.refreshAuthToken(GoogleLoginProvider.PROVIDER_ID);
+  }
+
+  onGoogleSignInSuccess(response: any) {
+    console.log('googleSignIn: ', response);
+    const tokenId = response.idToken;
+    this.http.post('http://localhost:3000/api/googleSignIn', { tokenId }).subscribe(
+      (response) => console.log("Successfully sent token to server.", response),
+      (error) => console.log("Failed to send token to server.", error)
+    );
   }
 }
 
