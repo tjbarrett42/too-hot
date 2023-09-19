@@ -18,26 +18,48 @@
       </mat-form-field>
       
       <!-- Buttons -->
-      <button mat-raised-button color="primary" (click)="savePreset()">Save</button>
-      <button mat-raised-button color="warn" (click)="deletePreset()" *ngIf="!isNewPreset">Delete</button>
+      <button mat-mini-fab color="primary" (click)="savePreset()">
+        <mat-icon>save</mat-icon>
+      </button>
+      <button mat-mini-fab color="warn" (click)="deletePreset()" *ngIf="!isNewPreset">
+        <mat-icon>delete</mat-icon>
+      </button>
     </div>
-    <div *ngIf="!isLoggedIn">
-      <mat-card-header>
-        <mat-card-title>
-          Login to save presets!
-        </mat-card-title>
-      </mat-card-header>
+    <div *ngIf="!isLoggedIn" 
+      matTooltip="Login to save presets"
+      matTooltipPosition="above"
+      matTooltipHideDelay="100000">
+      <mat-form-field>
+        <mat-label>Select Preset</mat-label>
+        <mat-select [(ngModel)]="selectedPreset" disabled="true">
+          <mat-option value="add_new">-- Add New --</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-mini-fab color="primary" disabled="true">
+        <mat-icon>save</mat-icon>
+      </button>
+      <button mat-mini-fab color="warn" disabled="true">
+        <mat-icon>delete</mat-icon>
+      </button>
     </div>  
     <form [formGroup]="preferenceForm"> 
       <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
         <mat-card>
-          <mat-card-header>
-            <mat-card-title>
-              {{ attributeList[i][1] }} ({{minSlider.value}}-{{maxSlider.value}}{{attributeList[i][2]}})
-            </mat-card-title>
-          </mat-card-header>
+          <div [formGroupName]="i" id="formGroupDiv">
+            
+              <mat-card-header>
+                <div class="preferenceHeader">
+                  <mat-slide-toggle formControlName="toggleValue" id="toggle" #toggle>
+                  </mat-slide-toggle>
+                  <mat-card-title>
+                    {{ attributeList[i][1] }} ({{minSlider.value}}-{{maxSlider.value}}{{attributeList[i][2]}})
+                  </mat-card-title>
+                </div>
+              </mat-card-header>
+            
+          
           <mat-card-content>
-            <div [formGroupName]="i" id="formGroupDiv">
+            
               <div id="slider-div">
                 <mat-slider 
                   min={{attributeList[i][3]}} 
@@ -50,10 +72,10 @@
                   <input matSliderEndThumb formControlName="maxValue" #maxSlider/>
                 </mat-slider>
               </div>
-              <mat-slide-toggle formControlName="toggleValue" id="toggle" #toggle>
-              </mat-slide-toggle>
-            </div>
+              
+            
           </mat-card-content>
+        </div>
         </mat-card>
       </div>
     </form>

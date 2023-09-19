@@ -1,10 +1,10 @@
 
 
-#toggle {
-    position: absolute; 
-    top: 20px; 
-    right: 20px;
-}
+// #toggle {
+//     position: absolute; 
+//     top: 20px; 
+//     right: 20px;
+// }
 
 #slider {
     display: block;
@@ -22,9 +22,15 @@
     transform: scale(1);
 }
 
-// .mat-slider {
-//     transform: scale(2);
-// }
+.preferenceHeader {
+    display: flex;
+    align-items: center;
+  }
+  
+  .preferenceHeader mat-card-title {
+    flex-grow: 1;
+    margin: 0;
+  }
 
 #formFieldsDiv {
     display: flex;
@@ -35,15 +41,20 @@
 #mainCardContent {
     max-height: calc(100vh - 100px); // You can adjust this based on your needs
     overflow-y: auto;
+    padding-top: 70px;
 }
 
 #formGroupDiv {
-    height: 40px;
+    height: 100px;
 }
 
 .mat-card-title {
     margin-top: 0;
     padding-top: 0;
+}
+
+.save-delete-buttons {
+    padding-left: 10px;
 }
 
 ::ng-deep {

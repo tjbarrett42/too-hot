@@ -30,7 +30,7 @@ import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { GenerateService } from './generate.service';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './navbar/navbar.component';
-
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @NgModule({
   declarations: [
@@ -58,7 +58,8 @@ import { NavbarComponent } from './navbar/navbar.component';
     MatDialogModule,
     MatButtonModule,
     SocialLoginModule,
-    GoogleSigninButtonModule
+    GoogleSigninButtonModule,
+    MatTooltipModule
   
   ],
   providers: [
