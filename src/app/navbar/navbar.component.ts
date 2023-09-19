@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { SocialAuthService } from "@abacritt/angularx-social-login";
 import { GoogleLoginProvider } from "@abacritt/angularx-social-login";
 import { HttpClient } from '@angular/common/http';
+import { AuthPresetService } from '../auth-preset.service';
 
 
 @Component({
@@ -23,7 +24,7 @@ export class NavbarComponent implements OnInit {
   user: any;
   loggedIn: any;
 
-  constructor(public dialog: MatDialog, private authService: SocialAuthService, private http: HttpClient) {
+  constructor(public dialog: MatDialog, private authService: SocialAuthService, private http: HttpClient, private authPresetService: AuthPresetService) {
     
   }
   ngOnInit() {
@@ -51,9 +52,17 @@ export class NavbarComponent implements OnInit {
   onGoogleSignInSuccess(response: any) {
     console.log('googleSignIn: ', response);
     const tokenId = response.idToken;
+    const unauthId = response.id;
     this.http.post('http://localhost:3000/api/googleSignIn', { tokenId }).subscribe(
-      (response) => console.log("Successfully sent token to server.", response),
-      (error) => console.log("Failed to send token to server.", error)
+      (response) => {
+        this.authPresetService.setUserId(unauthId);
+        this.authPresetService.loginSuccessful();
+        console.log("Successfully sent token to server.", response);
+      },
+      (error) => {
+        console.log("Failed to send token to server.", error);
+        this.authPresetService.logoutSuccessful();
+      }
     );
   }
 }

@@ -15,9 +15,6 @@ const userSchema = new mongoose.Schema({
     googleId: {
       type: String,
       unique: true,
-    },
-    preferences: {
-      type: Object,
     }
   });
 
@@ -40,12 +37,10 @@ async function verify(token: string) {
     });
     const payload = ticket.getPayload();
     const userId = payload?.sub;  // Google ID
-    console.log(payload)
     return userId;
 }
 
 app.post('/api/googleSignIn', async (req, res) => {
-    console.log("Received token: ", req.body.token); 
     const { tokenId } = req.body;
   
     try {
@@ -58,7 +53,7 @@ app.post('/api/googleSignIn', async (req, res) => {
       let user = await User.findOne({ googleId });
   
       if (!user) {
-        user = new User({ googleId });
+        user = new User({ googleId: googleId });
         await user.save();
       } else {
         // Update user data if needed
@@ -79,12 +74,14 @@ app.post('/api/googleSignIn', async (req, res) => {
     
   /* TODO: Move elsewhere. preset configuration */
 
-  const presetSchema = new mongoose.Schema({
-    userId: String,
-    name: String,
-    // ... other preset fields
-  });
-  const Preset = mongoose.model('Preset', presetSchema);
+const presetSchema = new mongoose.Schema({
+userId: String,
+name: String,
+preferences: [{}]
+// ... other preset fields
+});
+
+const Preset = mongoose.model('Preset', presetSchema);
   
   // Create a new preset
 app.post('/api/presets', async (req, res) => {
@@ -94,28 +91,38 @@ app.post('/api/presets', async (req, res) => {
       name: req.body.name,
       // ... other fields
     });
+    console.log('saving new preset: ', newPreset);
     await newPreset.save();
     res.status(201).send(newPreset);
-  });
+});
   
-  // Read all presets of a user
-  app.get('/api/presets/:userId', async (req, res) => {
-    // Your logic here
-    const presets = await Preset.find({ userId: req.params.userId });
-    res.status(200).send(presets);
-  });
-  
-  // Update a preset
-  app.put('/api/presets/:presetId', async (req, res) => {
-    // Your logic here
-    const preset = await Preset.findByIdAndUpdate(req.params.presetId, req.body, { new: true });
-    res.status(200).send(preset);
-  });
-  
-  // Delete a preset
-  app.delete('/api/presets/:presetId', async (req, res) => {
-    // Your logic here
-    await Preset.findByIdAndDelete(req.params.presetId);
-    res.status(204).send();
-  });
-  
+// Read all presets of a user
+app.get('/api/presets/:userId', async (req, res) => {
+console.log('searching for presets for userID: ', req.params.userId);
+// Your logic here
+const presets = await Preset.find({ userId: req.params.userId });
+console.log('presets ', presets);
+res.status(200).send(presets);
+});
+
+// Get single preset
+app.get('/api/presets/:presetId', async (req, res) => {
+const preset = await Preset.find({ _id: req.params.presetId });
+console.log('getting ind preset:', preset);
+res.status(200).send(preset);
+})
+
+// Update a preset
+app.put('/api/presets/:presetId', async (req, res) => {
+// Your logic here
+const preset = await Preset.findByIdAndUpdate(req.params.presetId, req.body, { new: true });
+console.log('updating preset ', preset);
+res.status(200).send(preset);
+});
+
+// Delete a preset
+app.delete('/api/presets/:presetId', async (req, res) => {
+console.log('deleting preset id: ', req.params.presetId);
+await Preset.findByIdAndDelete(req.params.presetId);
+res.status(204).send();
+});

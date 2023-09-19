@@ -7,15 +7,12 @@ import { SearchComponent } from './search/search.component';
 import { PreferenceService } from './preference.service';
 import { GenerateService } from './generate.service';
 import { NavbarComponent } from './navbar/navbar.component'
-
-
+import { AuthPresetService } from './auth-preset.service';
 
 export interface PlaceSearchCoords {
   lat: any;
   lng: any;
 }
-
-
 
 @Component({
   selector: 'app-root',
@@ -30,7 +27,8 @@ export class AppComponent {
     private apiService: ApiService,
     private preferenceService: PreferenceService,
     private locationService: LocationService,
-    private generateService: GenerateService
+    private generateService: GenerateService,
+    private authPresetService: AuthPresetService
   ) { }
   
   ngOnInit() {

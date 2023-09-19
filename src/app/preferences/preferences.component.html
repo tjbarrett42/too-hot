@@ -1,5 +1,26 @@
 <mat-card>
   <mat-card-content id="mainCardContent">
+    <div *ngIf="isLoggedIn">
+      <mat-form-field>
+        <mat-label>Select Preset</mat-label>
+        <mat-select [(ngModel)]="selectedPreset" (selectionChange)="onPresetChange()">
+          <mat-option *ngFor="let preset of presets" [value]="preset">
+            {{ preset.name }}
+          </mat-option>
+          <mat-option value="add_new">-- Add New --</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <!-- Add a text box to input the new preset name -->
+      <mat-form-field *ngIf="isNewPreset">
+        <mat-label>Preset Name</mat-label>
+        <input matInput [(ngModel)]="newPresetName" />
+      </mat-form-field>
+      
+      <!-- Buttons -->
+      <button mat-raised-button color="primary" (click)="savePreset()">Save</button>
+      <button mat-raised-button color="warn" (click)="deletePreset()" *ngIf="!isNewPreset">Delete</button>
+    </div>    
     <form [formGroup]="preferenceForm"> 
       <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
         <mat-card>
