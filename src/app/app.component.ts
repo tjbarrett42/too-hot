@@ -35,6 +35,12 @@ export class AppComponent {
     
   }
 
+  isDrawerOpen = false; // manage the state of the drawer
+
+  toggleDrawer() {
+    this.isDrawerOpen = !this.isDrawerOpen;
+  }
+
   preferences: any = [];
   preferencesForm: any = [];
 

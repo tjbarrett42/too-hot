@@ -1,21 +1,26 @@
 <div #map style="height: 700px;"></div>
 
-<mat-card-content class="timeline-div">
+<!-- Drawer for the timeline -->
+<div class="bottom-drawer" [ngClass]="{ 'bottom-drawer-open': isBottomDrawerOpen }">
+  <button class="bottom-drawer-toggle-button" mat-button color="primary" (click)="toggleBottomDrawer()">
+    <mat-icon *ngIf="!isBottomDrawerOpen">keyboard_arrow_up</mat-icon>
+    <mat-icon *ngIf="isBottomDrawerOpen">keyboard_arrow_down</mat-icon>
+    Timeline
+  </button>
+  <mat-card-content class="timeline-div">
     <mat-card>
-  <mat-card-content>
-    <div class="timeline-container">
-      <div class="slider-container">
-        <mat-slider
-            [min]="0"
-            [max]="maxHours"
-            showTickMarks="true"
-            >
-          <input matSliderThumb [(ngModel)]="currentHour" (input)="updateSliderValue($event)"/>
-        </mat-slider>
-        <span class="slider-thumb-label" [style.left.%]="getThumbLabelPosition()">{{getCurrentDayAndHour()}}</span>
-      </div>
-    </div>
+      <mat-card-content>
+        <div class="timeline-container">
+          <div class="slider-container">
+            <mat-slider [min]="0" [max]="maxHours" showTickMarks="true">
+              <input matSliderThumb [(ngModel)]="currentHour" (input)="updateSliderValue($event)" />
+            </mat-slider>
+            <span class="slider-thumb-label" [style.left.%]="getThumbLabelPosition()">
+              {{getCurrentDayAndHour()}}
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </mat-card-content>
-</mat-card>
-
-</mat-card-content>
+</div>

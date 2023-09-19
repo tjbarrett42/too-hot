@@ -3,11 +3,20 @@
   <div class="container">
     <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()"></app-search>
   </div>
-  <div>
-    <div>
+  <div class="map-and-drawer">
+    <div class="map-container">
       <app-weather></app-weather>
     </div>
-    <mat-card style="width: 400px;">
+    
+    <mat-card class="drawer" [ngClass]="{ 'drawer-open': isDrawerOpen }">
+      <button class="drawer-toggle-button" mat-button color="primary" (click)="toggleDrawer()">
+        <mat-icon *ngIf="!isDrawerOpen">chevron_left</mat-icon>
+        <mat-icon *ngIf="isDrawerOpen">chevron_right</mat-icon>
+        <mat-icon>tune</mat-icon> 
+        <mat-card-title>
+          Preference Editor
+        </mat-card-title>
+      </button>
       <app-preferences (preferencesChanged)="updatePreferences($event)"></app-preferences>
     </mat-card>
   </div>

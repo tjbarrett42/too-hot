@@ -1,7 +1,35 @@
-.container {
-    padding: 0px;
-}
-
-app-weather {
+.map-and-drawer {
     position: relative;
-}
+  }
+  
+  .map-container {
+    /* your styles here */
+    z-index: 1;  /* make sure it's lower than the drawer */
+  }
+  
+  .drawer {
+    width: 400px;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    right: -400px; /* start off the screen */
+    transition: right 0.3s ease-in-out;
+    z-index: 999;  /* make sure it's higher than the map */
+  }
+  
+  .drawer-open {
+    right: 0; /* slide in */
+  }
+  
+  .drawer-toggle-button {
+    position: absolute;
+    top: 10px;
+    left: -70px;  /* adjust based on the actual size of your button */
+    z-index: 1000;  /* to make sure it appears above the drawer and map */
+  
+    mat-icon {
+      color: white;
+      transform: scale(1.75)
+    }
+  }
+  

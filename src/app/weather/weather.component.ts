@@ -135,6 +135,7 @@ export class WeatherComponent implements OnInit {
   heatMapColors: string[] = [
     ''
   ]
+  isBottomDrawerOpen = false;
 
   private subscriptions: Subscription[] = [];
 
@@ -177,7 +178,6 @@ export class WeatherComponent implements OnInit {
           this.onSubmit()
           }
         });
-        // this.subscriptions.push(preferenceSubscription);
       });
       this.subscriptions.push(generateSubscription);
     });
@@ -187,7 +187,7 @@ export class WeatherComponent implements OnInit {
     if (this.map) {
       this.map.remove();
     }
-    this.map = L.map(this.mapContainer.nativeElement).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
+    this.map = L.map(this.mapContainer.nativeElement, {attributionControl: false }).setView([this.userLocation.latitude, this.userLocation.longitude], 10);
 
     L.control.scale().addTo(this.map);
 
@@ -435,5 +435,9 @@ export class WeatherComponent implements OnInit {
 
   getThumbLabelPosition(): number {
     return (this.currentHour / this.maxHours) * 100;
+  }
+
+  toggleBottomDrawer() {
+    this.isBottomDrawerOpen = !this.isBottomDrawerOpen;
   }
 }

@@ -46,3 +46,34 @@ mat-slider {
     width: 100%;
   }
   
+/* Existing styles for top drawer */
+.drawer {
+  /* ... existing styles ... */
+}
+
+/* Styles for bottom drawer */
+.bottom-drawer {
+  width: 100%;
+  height: 400px; /* You can set the height to your requirement */
+  position: fixed;
+  bottom: -400px; /* start off the screen */
+  transition: bottom 0.3s ease-in-out;
+  z-index: 999;  /* make sure it's higher than the map */
+}
+
+.bottom-drawer-open {
+  bottom: -300px; /* slide up */
+}
+
+/* Add a button to toggle the bottom drawer */
+.bottom-drawer-toggle-button {
+  margin: 0 auto;
+  position: absolute;
+  bottom: 400px; /* adjust based on the actual size of your button */
+  left: 15px; 
+  z-index: 1000;  /* to make sure it appears above the drawer and map */
+
+  mat-icon {
+    color: white;
+  }
+}
