@@ -1,11 +1,18 @@
+.overlay-container {
+  position: absolute;
+  top: 90px;  /* Adjust as needed */
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 1000;  /* High value to ensure it stays on top */
+  max-width: 400px;
+}
+
 .map-and-drawer {
-    position: relative;
-  }
-  
-  .map-container {
-    /* your styles here */
-    z-index: 1;  /* make sure it's lower than the drawer */
-  }
+  position: relative;
+}
+
   
   .drawer {
     width: 400px;
@@ -23,7 +30,7 @@
   
   .drawer-toggle-button {
     position: absolute;
-    top: 10px;
+    top: 13px;
     left: -70px;  /* adjust based on the actual size of your button */
     z-index: 1000;  /* to make sure it appears above the drawer and map */
   
@@ -31,7 +38,7 @@
       color: white;
       transform: scale(1.75)
     }
-    
+
     mat-card-title {
       padding-left: 20px;  // Increase padding to the left as needed
     }

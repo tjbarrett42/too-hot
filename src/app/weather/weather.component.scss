@@ -67,10 +67,10 @@ mat-slider {
 
 /* Add a button to toggle the bottom drawer */
 .bottom-drawer-toggle-button {
-  margin: 0 auto;
+  left: 50%;
+  transform: translateX(-50%);
   position: absolute;
   bottom: 400px; /* adjust based on the actual size of your button */
-  left: 15px; 
   z-index: 1000;  /* to make sure it appears above the drawer and map */
 
   mat-icon {

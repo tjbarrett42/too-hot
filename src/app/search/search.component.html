@@ -1,11 +1,14 @@
-<div>
-    <button (click)="updateHome()" mat-icon-button color="secondary">
-        <mat-icon>my_location</mat-icon>
-    </button>
-    <mat-form-field appearance="outline">
-        <input #inputField matInput [placeholder]="placeholder" [value]="currentCoords" />
-    </mat-form-field>
-    <button (click)="generateMap()" mat-fab color="primary">
-        <mat-icon>input</mat-icon>
-    </button>
-</div>
+<mat-card>
+    <mat-card-content>
+        <button (click)="updateHome()" mat-icon-button color="secondary">
+            <mat-icon>my_location</mat-icon>
+        </button>
+        <mat-form-field appearance="outline">
+            <input #inputField matInput [placeholder]="placeholder" [value]="currentCoords" />
+        </mat-form-field>
+        <button (click)="generateMap()" mat-raised-button color="primary" [disabled]="isGenerateDisabled">
+            Gen
+            <mat-icon>input</mat-icon>
+        </button>
+    </mat-card-content>
+</mat-card>

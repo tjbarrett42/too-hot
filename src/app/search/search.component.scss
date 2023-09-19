@@ -1,4 +1,9 @@
-#searchInput {
-  width: 400px;
-  height: 400px;
+mat-card-content {
+  display: flex;
+  align-items: center; /* Vertically center align items */
+  justify-content: space-between; /* Horizontally align items with space between them */
+}
+
+mat-form-field{
+  margin-bottom: -1.25em;
 }

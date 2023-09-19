@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { PlacesEventsHandlers } from 'places.js';
 import { concat } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card'
 
 
 /// <reference types="@types/googlemaps" />
@@ -16,7 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
   standalone: true,
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
-  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule, MatCardModule],
   styles: [
 
   ]
@@ -35,6 +36,7 @@ export class SearchComponent implements OnInit {
   initialLocation: any;
   result: PlaceSearchCoords | undefined;
   defaultBounds: any;
+  isGenerateDisabled: boolean = false;
 
   constructor(private ngZone: NgZone) { }
   ngOnInit(): void {}
@@ -55,6 +57,7 @@ export class SearchComponent implements OnInit {
             lng: place?.geometry?.location?.lng()
       };
       this.submitLocation();
+      this.isGenerateDisabled = false;
     });
   }
 
@@ -83,7 +86,9 @@ export class SearchComponent implements OnInit {
 
   generateMap() {
     this.ngZone.run(() => {
+      this.isGenerateDisabled = true;
       this.generateMapRequested.emit();
+
     })
   }
 }

@@ -1,11 +1,11 @@
-<div #map style="height: 700px;"></div>
+<div #map style="height: 100vh;"></div>
 
 <!-- Drawer for the timeline -->
 <div class="bottom-drawer" [ngClass]="{ 'bottom-drawer-open': isBottomDrawerOpen }">
-  <button class="bottom-drawer-toggle-button" mat-button color="primary" (click)="toggleBottomDrawer()">
+  <button class="bottom-drawer-toggle-button" mat-raised-button color="primary" (click)="toggleBottomDrawer()">
     <mat-icon *ngIf="!isBottomDrawerOpen">keyboard_arrow_up</mat-icon>
     <mat-icon *ngIf="isBottomDrawerOpen">keyboard_arrow_down</mat-icon>
-    Timeline
+    Forecast Timeline
   </button>
   <mat-card-content class="timeline-div">
     <mat-card>
