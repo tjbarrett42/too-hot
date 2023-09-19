@@ -1,10 +1,7 @@
 <p>
   <mat-toolbar color="primary">
     <asl-google-signin-button type='icon' size='medium' *ngIf="!user" shape="circle"></asl-google-signin-button>
-    <div *ngIf="user">
-      {{ user.name }}
-    </div>
-    <span>TooHot</span>
+    <span>TooHot - Weather Preference Mapper</span>
     <span class="example-spacer"></span>
     <!-- <button mat-icon-button class="example-icon favorite-icon">
       <mat-icon>person</mat-icon>

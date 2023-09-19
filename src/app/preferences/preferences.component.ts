@@ -92,8 +92,9 @@ export class PreferencesComponent implements OnInit {
     }
 
     // Fetch presets from the backend and populate the `presets` array.
-    this.http.get(`http://localhost:3000/api/presets/${userId}`)
+    this.http.get(`http://localhost:3000/api/presets?userId=${userId}`)
       .subscribe(data => {
+        console.log('lp data: ', data);
         this.presets = data as any[];
 
         // TODO: add logic for keeping current option as newest option (adding new preset)
@@ -113,7 +114,8 @@ export class PreferencesComponent implements OnInit {
       this.isNewPreset = true;
     } else {
       this.isNewPreset = false;
-      // Load preset data here if needed
+      console.log('spid: ', this.selectedPreset._id);
+      this.getSpecificPreset(this.selectedPreset._id);
     }
   }
 
@@ -132,11 +134,9 @@ export class PreferencesComponent implements OnInit {
       });
     } else {
       // Update existing preset
-      console.log('presets: ', this.presets);
-      console.log('selectedPreset: ', this.selectedPreset);
       const preset = this.presets.find(preset => preset.name === this.selectedPreset.name);
-      this.http.put(`http://localhost:3000/api/presets/${preset._id}`, {
-        // TODO: updated fields
+      this.http.put(`http://localhost:3000/api/presets/${preset._id}`, { 
+        preferences: this.preferences.value
       }).subscribe(() => {
         this.loadPresets();
       });
@@ -144,9 +144,9 @@ export class PreferencesComponent implements OnInit {
   }
 
   getSpecificPreset(presetId: string): void {
-    this.http.get(`http://localhost:3000/api/presets/${presetId}`) 
-      .subscribe(data => {
-        
+    this.http.get(`http://localhost:3000/api/presets?presetId=${presetId}`) 
+      .subscribe((data: any) => {
+        this.updatePreferencesForm(data[0].preferences);
       });
   }
 
@@ -155,5 +155,24 @@ export class PreferencesComponent implements OnInit {
       .subscribe(() => {
         this.loadPresets();
       });
+    }
+
+  updatePreferencesForm(preferences: any[]): void {
+    const preferencesFormArray = this.preferenceForm.get('preferences') as FormArray;
+  
+    preferences.forEach((preference, index) => {
+      const formGroup = preferencesFormArray.at(index) as FormGroup;
+      
+      if (formGroup) { // Make sure the form group exists
+        formGroup.patchValue({
+          attribute: preference.attribute,
+          minValue: preference.minValue,
+          maxValue: preference.maxValue,
+          toggleValue: preference.toggleValue
+        });
+      }
+    });
   }
+    
+  
 }

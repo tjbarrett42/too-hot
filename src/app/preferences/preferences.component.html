@@ -20,7 +20,14 @@
       <!-- Buttons -->
       <button mat-raised-button color="primary" (click)="savePreset()">Save</button>
       <button mat-raised-button color="warn" (click)="deletePreset()" *ngIf="!isNewPreset">Delete</button>
-    </div>    
+    </div>
+    <div *ngIf="!isLoggedIn">
+      <mat-card-header>
+        <mat-card-title>
+          Login to save presets!
+        </mat-card-title>
+      </mat-card-header>
+    </div>  
     <form [formGroup]="preferenceForm"> 
       <div formArrayName="preferences" *ngFor="let preference of preferences.controls; let i = index">
         <mat-card>

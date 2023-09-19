@@ -74,11 +74,17 @@ app.post('/api/googleSignIn', async (req, res) => {
     
   /* TODO: Move elsewhere. preset configuration */
 
+const preferenceSchema = new mongoose.Schema({
+    attribute: String,
+    maxValue: Number,
+    minValue: Number,
+    toggleValue: Boolean
+})
+
 const presetSchema = new mongoose.Schema({
-userId: String,
-name: String,
-preferences: [{}]
-// ... other preset fields
+    userId: String,
+    name: String,
+    preferences: [preferenceSchema]
 });
 
 const Preset = mongoose.model('Preset', presetSchema);
@@ -95,30 +101,31 @@ app.post('/api/presets', async (req, res) => {
     await newPreset.save();
     res.status(201).send(newPreset);
 });
-  
-// Read all presets of a user
-app.get('/api/presets/:userId', async (req, res) => {
-console.log('searching for presets for userID: ', req.params.userId);
-// Your logic here
-const presets = await Preset.find({ userId: req.params.userId });
-console.log('presets ', presets);
-res.status(200).send(presets);
-});
 
-// Get single preset
-app.get('/api/presets/:presetId', async (req, res) => {
-const preset = await Preset.find({ _id: req.params.presetId });
-console.log('getting ind preset:', preset);
-res.status(200).send(preset);
-})
+app.get('/api/presets', async (req, res) => {
+    // Read all presets of a user or get single preset, depends on the type of id
+    if (req.query.userId) {
+        console.log('searching for presets for userID: ', req.query.userId);
+      
+      const presets = await Preset.find({ userId: req.query.userId });
+      res.status(200).send(presets);
+    } else if (req.query.presetId) { // Get single preset
+        console.log('getting ind preset:', req.query.presetId);
+      // Your logic for fetching a single preset
+      const preset = await Preset.find({ _id: req.query.presetId });
+      res.status(200).send(preset);
+    }
+  });
 
 // Update a preset
 app.put('/api/presets/:presetId', async (req, res) => {
 // Your logic here
-const preset = await Preset.findByIdAndUpdate(req.params.presetId, req.body, { new: true });
+const preset = await Preset.findByIdAndUpdate(req.params.presetId, { $set: { preferences: req.body.preferences } }, { new: true });
 console.log('updating preset ', preset);
 res.status(200).send(preset);
 });
+
+
 
 // Delete a preset
 app.delete('/api/presets/:presetId', async (req, res) => {
