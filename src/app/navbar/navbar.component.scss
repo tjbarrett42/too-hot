@@ -1,3 +1,10 @@
 .example-spacer {
     flex: 1 1 auto;
   }
+
+  mat-toolbar span {
+    font-size: 24px;      // increased font size
+    font-weight: bolder;    // make it bold
+    color: white;         // set the text color
+    letter-spacing: 2px;  // adjust letter spacing
+  }

@@ -41,7 +41,6 @@ export class NavbarComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      console.log('The dialog was closed');
     });
   }
 
@@ -50,17 +49,14 @@ export class NavbarComponent implements OnInit {
   }
 
   onGoogleSignInSuccess(response: any) {
-    console.log('googleSignIn: ', response);
     const tokenId = response.idToken;
     const unauthId = response.id;
     this.http.post('http://localhost:3000/api/googleSignIn', { tokenId }).subscribe(
       (response) => {
         this.authPresetService.setUserId(unauthId);
         this.authPresetService.loginSuccessful();
-        console.log("Successfully sent token to server.", response);
       },
       (error) => {
-        console.log("Failed to send token to server.", error);
         this.authPresetService.logoutSuccessful();
       }
     );

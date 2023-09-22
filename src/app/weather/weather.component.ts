@@ -9,6 +9,8 @@ import { PreferencesComponent } from '../preferences/preferences.component';
 import * as spoofData from '../../assets/spoof.json'
 import { PlaceSearchCoords } from '../app.component';
 import { GenerateService } from '../generate.service';
+import { environment } from 'src/environment.prod';
+
 
 interface Location {
     latitude: number;
@@ -131,7 +133,7 @@ export class WeatherComponent implements OnInit {
     },
   }
   tickInterval: number = 24;
-  spoofing: boolean = true;
+  spoofing: boolean = false;
   heatMapColors: string[] = [
     ''
   ]
@@ -139,13 +141,13 @@ export class WeatherComponent implements OnInit {
 
   private subscriptions: Subscription[] = [];
 
+  openMeteoApiKey: string = environment.openMeteoApiKey;
+
   constructor(
-    private formBuilder: FormBuilder, 
     private http: HttpClient, 
     private preferenceService: PreferenceService, 
     private locationService: LocationService,
     private generateService: GenerateService,
-    private preferencesComponent: PreferencesComponent
   ) { }
 
   ngOnInit() {
@@ -160,7 +162,6 @@ export class WeatherComponent implements OnInit {
         this.fetchWeatherData();
         this.subscriptions.forEach(sub => sub.unsubscribe());
         this.subscriptions = [];
-        console.log('curr pref: ', this.preferences);
         if (this.preferenceForm) {
           this.preferences = this.preferenceForm.value.preferences.reduce((acc: any, curr: any) => {
             acc[curr.attribute] = {minValue: curr.minValue, maxValue: curr.maxValue, toggleValue: curr.toggleValue };
@@ -206,13 +207,12 @@ export class WeatherComponent implements OnInit {
   }
 
   setLocation(location: PlaceSearchCoords) {
-    console.log('setting location: ', location);
   }
   
   calculatePoints() {
-    this.distance = 50;
+    this.distance = 70;
     this.pointsToCheck = [];
-    this.pointsToCheck = this.generateGrid(this.userLocation, 30, this.distance);
+    this.pointsToCheck = this.generateGrid(this.userLocation, 21, this.distance);
   }
 
   generateGrid(center: Location, gridSize: number, distance: number): L.Point[] {
@@ -247,7 +247,6 @@ export class WeatherComponent implements OnInit {
       });
       this.http.get('../../assets/spoof.json').subscribe((data) => {
         this.weatherData = data as WeatherData[];
-        console.log(this.weatherData);
         this.displayLocations();
         this.onSubmit()
       });
@@ -258,14 +257,13 @@ export class WeatherComponent implements OnInit {
       this.latLngElements.push({ latLng, element: null! });
 
       let weatherObservable = this.http.get<WeatherData>(
-        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=tU9Zk9YSzmTTV6kZ`
+        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=${this.openMeteoApiKey}`
       );
       weatherObservables.push(weatherObservable);
       });
 
       forkJoin(weatherObservables).subscribe((weatherDataArray) => {
         this.weatherData = weatherDataArray;
-        console.log(this.weatherData);
         this.displayLocations();
       });
     }
@@ -284,7 +282,6 @@ export class WeatherComponent implements OnInit {
   }
 
   displayLocations() { // Build rectangle elements and gets popups bound and data bound to each element
-    console.log('update pref ', this.preferences);
     const currentZoomLevel = this.map.getZoom();
     const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
     const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;

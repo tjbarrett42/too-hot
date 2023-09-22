@@ -1,12 +1,15 @@
+require('dotenv').config();
+
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { OAuth2Client } from 'google-auth-library';
 import mongoose from 'mongoose';
 
-const CLIENT_ID = '283648574519-dtuo7hds214qmtr77d5egm6v76dundco.apps.googleusercontent.com';
+const CLIENT_ID = process.env.CLIENT_ID;
+const mongo_pw = process.env.MONGO_URI_PW;
 
-const uri = "mongodb+srv://tjbarrett42:lsVlzvE835DLQI3O@toohotcluster.5w5mkpc.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://tjbarrett42:${mongo_pw}@toohotcluster.5w5mkpc.mongodb.net/?retryWrites=true&w=majority`
 
 const port = 3000; // Your desired port
 const client = new OAuth2Client(CLIENT_ID); // Replace with your actual client ID

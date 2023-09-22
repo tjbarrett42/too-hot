@@ -66,7 +66,6 @@ export class PreferencesComponent implements OnInit {
     this.preferenceForm.valueChanges.pipe(
       debounceTime(300)
     ).subscribe(value => {
-      console.log('Changed form:', value);
       this.preferencesChanged.emit(this.preferenceForm);
     });
   }
@@ -94,7 +93,6 @@ export class PreferencesComponent implements OnInit {
     // Fetch presets from the backend and populate the `presets` array.
     this.http.get(`http://localhost:3000/api/presets?userId=${userId}`)
       .subscribe(data => {
-        console.log('lp data: ', data);
         this.presets = data as any[];
 
         // TODO: add logic for keeping current option as newest option (adding new preset)
@@ -109,12 +107,10 @@ export class PreferencesComponent implements OnInit {
   }
 
   onPresetChange(): void {
-    console.log('preset current: ', this.selectedPreset);
     if (this.selectedPreset === 'add_new') {
       this.isNewPreset = true;
     } else {
       this.isNewPreset = false;
-      console.log('spid: ', this.selectedPreset._id);
       this.getSpecificPreset(this.selectedPreset._id);
     }
   }

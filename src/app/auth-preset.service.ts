@@ -17,7 +17,6 @@ export class AuthPresetService {
   }
 
   setUserId(userId: string) {
-    console.log('setuserId happening', userId);
     this.userId = userId;
   }
 
