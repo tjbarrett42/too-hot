@@ -19,6 +19,7 @@ server/.env
 # Frontend
 src/environment.ts
 src/environment.prod.ts
+src/.env
 
 # IDEs and editors
 .idea/

@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as L from 'leaflet';
@@ -9,8 +11,6 @@ import { PreferencesComponent } from '../preferences/preferences.component';
 import * as spoofData from '../../assets/spoof.json'
 import { PlaceSearchCoords } from '../app.component';
 import { GenerateService } from '../generate.service';
-import { environment } from 'src/environment.prod';
-
 
 interface Location {
     latitude: number;
@@ -141,7 +141,7 @@ export class WeatherComponent implements OnInit {
 
   private subscriptions: Subscription[] = [];
 
-  openMeteoApiKey: string = environment.openMeteoApiKey;
+  openMeteoApiKey = process.env.OPENMETEO_KEY;
 
   constructor(
     private http: HttpClient, 
