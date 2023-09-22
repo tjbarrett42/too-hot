@@ -17,8 +17,8 @@ server/node_modules
 server/.env
 
 # Frontend
-environment
-environment.prod
+src/environment
+src/environment.prod
 
 # IDEs and editors
 .idea/
