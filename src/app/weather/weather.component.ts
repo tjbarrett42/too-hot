@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import * as L from 'leaflet';
@@ -141,8 +139,6 @@ export class WeatherComponent implements OnInit {
 
   private subscriptions: Subscription[] = [];
 
-  openMeteoApiKey = process.env.OPENMETEO_KEY;
-
   constructor(
     private http: HttpClient, 
     private preferenceService: PreferenceService, 
@@ -257,7 +253,7 @@ export class WeatherComponent implements OnInit {
       this.latLngElements.push({ latLng, element: null! });
 
       let weatherObservable = this.http.get<WeatherData>(
-        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=${this.openMeteoApiKey}`
+        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=OPENMETEO_KEY=tU9Zk9YSzmTTV6kZ`
       );
       weatherObservables.push(weatherObservable);
       });
