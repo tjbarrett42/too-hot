@@ -253,7 +253,7 @@ export class WeatherComponent implements OnInit {
       this.latLngElements.push({ latLng, element: null! });
 
       let weatherObservable = this.http.get<WeatherData>(
-        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=OPENMETEO_KEY=tU9Zk9YSzmTTV6kZ`
+        `https://customer-api.open-meteo.com/v1/forecast?latitude=${latLng.lat}&longitude=${latLng.lng}&hourly=temperature_2m,relativehumidity_2m,precipitation_probability,cloudcover,windspeed_10m,soil_moisture_0_1cm,uv_index&temperature_unit=fahrenheit&windspeed_unit=mph&apikey=tU9Zk9YSzmTTV6kZ`
       );
       weatherObservables.push(weatherObservable);
       });
