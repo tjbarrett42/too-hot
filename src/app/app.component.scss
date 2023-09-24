@@ -5,7 +5,7 @@
   right: 0;
   margin-left: auto;
   margin-right: auto;
-  z-index: 1000;  /* High value to ensure it stays on top */
+  z-index: 888;  /* High value to ensure it stays on top */
   max-width: 400px;
 }
 
@@ -15,11 +15,11 @@
 
   
   .drawer {
-    width: 400px;
+    width: 330px;
     height: 100%;
     position: fixed;
-    top: 0;
-    right: -400px; /* start off the screen */
+    top: 64px;
+    right: -330px; /* start off the screen */
     transition: right 0.3s ease-in-out;
     z-index: 999;  /* make sure it's higher than the map */
   }

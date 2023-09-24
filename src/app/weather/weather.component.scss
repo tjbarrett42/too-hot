@@ -4,6 +4,10 @@
     position: relative;
 }
 
+.map {
+  height: calc(100vh - 64px);
+}
+
 .timeline-div {
   position: relative;
   

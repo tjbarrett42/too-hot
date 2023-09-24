@@ -33,7 +33,7 @@ export class PreferencesComponent implements OnInit {
     ['precipitation_probability', 'Precipitation', '%', '0', '100', '1'], 
     ['cloudcover', 'Cloudcover', '%', '0', '100', '1'], 
     ['windspeed_10m', 'Windspeed', 'mph', '0', '100', '1'], 
-    ['soil_moisture_0_1cm', 'Soil Moisture', 'm3/m3', '0', '1', '0.01'], 
+    ['soil_moisture_0_1cm', 'Soil Moist.', 'm3/m3', '0', '1', '0.01'], 
     ['uv_index', 'UV Index', '', '0', '12', '1']
   ];
   attributeDefault: number[][] = [

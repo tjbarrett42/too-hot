@@ -38,11 +38,15 @@ export class NavbarComponent implements OnInit {
   }
 
   openDialog(): void {
-    const dialogRef = this.dialog.open(AboutDialogComponent, {
-    });
+    if (!localStorage.getItem('aboutAlreadyShown')) {
+      const dialogRef = this.dialog.open(AboutDialogComponent, {
+      });
+      dialogRef.afterClosed().subscribe(result => {
+        localStorage.setItem('aboutAlreadyShown', 'true');
+      });
+    }
 
-    dialogRef.afterClosed().subscribe(result => {
-    });
+    
   }
 
   refreshToken(): void {

@@ -1,7 +1,7 @@
-<mat-card>
+<mat-card class="preferenceCard">
   <mat-card-content id="mainCardContent">
     <div *ngIf="isLoggedIn">
-      <mat-form-field>
+      <mat-form-field class="presetFormField">
         <mat-label>Select Preset</mat-label>
         <mat-select [(ngModel)]="selectedPreset" (selectionChange)="onPresetChange()">
           <mat-option *ngFor="let preset of presets" [value]="preset">

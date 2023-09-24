@@ -9,7 +9,22 @@ import { PreferencesComponent } from '../preferences/preferences.component';
 import * as spoofData from '../../assets/spoof.json'
 import { PlaceSearchCoords } from '../app.component';
 import { GenerateService } from '../generate.service';
+import { icon, Marker } from 'leaflet';
 
+const iconRetinaUrl = '../assets/images/marker-icon-2x.png';
+const iconUrl = '../assets/images/marker-icon.png';
+const shadowUrl = '../assets/images/marker-shadow.png';
+const iconDefault = icon({
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  tooltipAnchor: [16, -28],
+  shadowSize: [41, 41]
+});
+Marker.prototype.options.icon = iconDefault;
 
 interface Location {
     latitude: number;
@@ -191,11 +206,11 @@ export class WeatherComponent implements OnInit {
       attribution: 'Map data © OpenStreetMap contributors'
     }).addTo(this.map);
 
-    let icon = new L.Icon.Default();
-    icon.options.shadowSize = [0,0];
 
-    L.marker([this.userLocation.latitude, this.userLocation.longitude], {icon : icon}).addTo(this.map);
-  
+    L.marker([this.userLocation.latitude, this.userLocation.longitude]).addTo(this.map);
+
+    this.map.removeControl(this.map.zoomControl);
+
     setTimeout(() => {
       this.map.invalidateSize();
     }, 0);
@@ -208,6 +223,7 @@ export class WeatherComponent implements OnInit {
   }
 
   generateGrid(center: Location, gridSize: number, distance: number): L.Point[] {
+    console.log('center: ', center);
     const centerPoint = this.map.latLngToContainerPoint([center.latitude, center.longitude]);
     const points: L.Point[] = [];
 
@@ -227,6 +243,8 @@ export class WeatherComponent implements OnInit {
   }
 
   fetchWeatherData() {
+    this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
+
     let weatherObservables: Observable<WeatherData>[] = [];
     this.weatherData = [];
     this.latLngElements = [];
@@ -273,6 +291,9 @@ export class WeatherComponent implements OnInit {
     const currentZoomLevel = this.map.getZoom();
     const zoomAdjustmentFactor = this.initialZoomLevel ? Math.pow(2, this.initialZoomLevel - currentZoomLevel) : 1;
     const halfDistance = (this.distance / 2) * zoomAdjustmentFactor;
+
+    // Set the center of the map to the user's location
+    
 
     this.weatherData.forEach((data: WeatherData, index: number) => {
         const latLng = this.latLngElements[index].latLng;
@@ -329,8 +350,7 @@ export class WeatherComponent implements OnInit {
         this.elements.push({ data: data, element: rectangle });
     });
 
-    // Set the center of the map to the user's location
-    this.map.setView([this.userLocation.latitude, this.userLocation.longitude], this.map.getZoom());
+    
   }
 
   onSubmit() {
