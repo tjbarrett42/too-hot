@@ -54,7 +54,7 @@ export class AppComponent {
     },
     {
       anchorId: 'preferencesButton',
-      content: `Open the preferences editor on the top right of the screen.`,
+      content: `Open the preferences editor on the top right of the screen to start filtering for preferred weather.`,
       title: 'Step 3',
     },
     {
@@ -65,14 +65,26 @@ export class AppComponent {
     },
     {
       anchorId: 'preferencesButton',
-      content: `Close the preferences editor.`,
+      content: `Close the preferences editor to return to the map.`,
       title: 'Step 5',
     },
     {
-      anchorId: 'weather',
+      anchorId: 'search',
       content: `Open the 'Forecast Timeline' and drag the slider to see into the future!`,
       title: 'Step 6',
     },
+    {
+      anchorId: 'googleSignIn',
+      content: `Sign into Google to save and edit your favorite presets!`,
+      title: 'Step 7',
+      isOptional: true,
+    },
+    {
+      anchorId: 'search',
+      content: `You have completed the tutorial - enjoy using TooHot!`,
+      title: 'Enjoy!',
+    },
+    
   ]);
     this.tourService.start();
   }

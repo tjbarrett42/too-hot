@@ -1,5 +1,5 @@
 <div>
-  <app-navbar></app-navbar>
+  <app-navbar tourAnchor="googleSignIn"></app-navbar>
   <div class="overlay-container" >
     <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()" tourAnchor="search"></app-search>
   </div>
