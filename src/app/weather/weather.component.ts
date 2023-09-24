@@ -10,6 +10,7 @@ import * as spoofData from '../../assets/spoof.json'
 import { PlaceSearchCoords } from '../app.component';
 import { GenerateService } from '../generate.service';
 
+
 interface Location {
     latitude: number;
     longitude: number;
@@ -80,7 +81,6 @@ export class WeatherComponent implements OnInit {
   @ViewChild('map') mapContainer!: ElementRef;
 
   private map!: L.Map;
-  private markers: { data: WeatherData, marker: L.Marker }[] = [];
   private elementCache: { [key: string]: L.Rectangle | L.Marker } = {};
   userLocation: Location = { latitude: 0, longitude: 0 };  // Initialized to prevent errors
   pointsToCheck: L.Point[] = [];
@@ -130,11 +130,7 @@ export class WeatherComponent implements OnInit {
       maxValue: 1
     },
   }
-  tickInterval: number = 24;
   spoofing: boolean = false;
-  heatMapColors: string[] = [
-    ''
-  ]
   isBottomDrawerOpen = false;
 
   private subscriptions: Subscription[] = [];
@@ -195,14 +191,14 @@ export class WeatherComponent implements OnInit {
       attribution: 'Map data © OpenStreetMap contributors'
     }).addTo(this.map);
 
-    L.marker([this.userLocation.latitude, this.userLocation.longitude]).addTo(this.map);
+    let icon = new L.Icon.Default();
+    icon.options.shadowSize = [0,0];
+
+    L.marker([this.userLocation.latitude, this.userLocation.longitude], {icon : icon}).addTo(this.map);
   
     setTimeout(() => {
       this.map.invalidateSize();
     }, 0);
-  }
-
-  setLocation(location: PlaceSearchCoords) {
   }
   
   calculatePoints() {
@@ -264,10 +260,6 @@ export class WeatherComponent implements OnInit {
       });
     }
   }
-  
-  updateMap() {
-    this.removeLocations();
-  } 
 
   removeLocations() {
       this.elements.forEach(({ element }) => {
@@ -293,7 +285,7 @@ export class WeatherComponent implements OnInit {
         const soil_moisture_0_1cm = data.hourly.soil_moisture_0_1cm[this.currentHour];
         const uv_index = data.hourly.uv_index[this.currentHour];
 
-        let color = '#7343BE'; // default to green
+        let color = '#7343BE';
 
         const centerPoint = this.map.latLngToContainerPoint(latLng);
 

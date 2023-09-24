@@ -52,7 +52,6 @@ export class NavbarComponent implements OnInit {
   onGoogleSignInSuccess(response: any) {
     const tokenId = response.idToken;
     const unauthId = response.id;
-    console.log('attempting signin with url: ', environment.backendUrl);
     this.http.post(`${environment.backendUrl}/api/googleSignIn`, { tokenId }).subscribe(
       (response) => {
         this.authPresetService.setUserId(unauthId);
