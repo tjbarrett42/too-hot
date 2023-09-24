@@ -13,6 +13,7 @@ import { SocialAuthService } from "@abacritt/angularx-social-login";
 import { GoogleLoginProvider } from "@abacritt/angularx-social-login";
 import { HttpClient } from '@angular/common/http';
 import { AuthPresetService } from '../auth-preset.service';
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -51,12 +52,14 @@ export class NavbarComponent implements OnInit {
   onGoogleSignInSuccess(response: any) {
     const tokenId = response.idToken;
     const unauthId = response.id;
-    this.http.post('http://localhost:3000/api/googleSignIn', { tokenId }).subscribe(
+    console.log('attempting signin with url: ', environment.backendUrl);
+    this.http.post(`${environment.backendUrl}/api/googleSignIn`, { tokenId }).subscribe(
       (response) => {
         this.authPresetService.setUserId(unauthId);
         this.authPresetService.loginSuccessful();
       },
       (error) => {
+        console.log('googlesignin error: ', error)
         this.authPresetService.logoutSuccessful();
       }
     );

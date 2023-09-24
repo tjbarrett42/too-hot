@@ -4,7 +4,7 @@ import { debounceTime } from 'rxjs/operators';
 import places from 'places.js';
 import { HttpClient } from '@angular/common/http';
 import { AuthPresetService } from '../auth-preset.service';
-
+import { environment } from '../../environments/environment';
 
 interface attributeDetails {
   apiName: string;
@@ -91,7 +91,7 @@ export class PreferencesComponent implements OnInit {
     }
 
     // Fetch presets from the backend and populate the `presets` array.
-    this.http.get(`http://localhost:3000/api/presets?userId=${userId}`)
+    this.http.get(`${environment.backendUrl}/api/presets?userId=${userId}`)
       .subscribe(data => {
         this.presets = data as any[];
 
@@ -120,7 +120,7 @@ export class PreferencesComponent implements OnInit {
 
     if (this.isNewPreset) {
       // Create a new preset
-      this.http.post('http://localhost:3000/api/presets', {
+      this.http.post(`${environment.backendUrl}/api/presets`, {
         name: this.newPresetName,
         userId: userId,
         // ... other fields
@@ -131,7 +131,7 @@ export class PreferencesComponent implements OnInit {
     } else {
       // Update existing preset
       const preset = this.presets.find(preset => preset.name === this.selectedPreset.name);
-      this.http.put(`http://localhost:3000/api/presets/${preset._id}`, { 
+      this.http.put(`${environment.backendUrl}/api/presets/${preset._id}`, { 
         preferences: this.preferences.value
       }).subscribe(() => {
         this.loadPresets();
@@ -140,14 +140,14 @@ export class PreferencesComponent implements OnInit {
   }
 
   getSpecificPreset(presetId: string): void {
-    this.http.get(`http://localhost:3000/api/presets?presetId=${presetId}`) 
+    this.http.get(`${environment.backendUrl}/api/presets?presetId=${presetId}`) 
       .subscribe((data: any) => {
         this.updatePreferencesForm(data[0].preferences);
       });
   }
 
   deletePreset(): void {
-    this.http.delete(`http://localhost:3000/api/presets/${this.selectedPreset._id}`)
+    this.http.delete(`${environment.backendUrl}/api/presets/${this.selectedPreset._id}`)
       .subscribe(() => {
         this.loadPresets();
       });
