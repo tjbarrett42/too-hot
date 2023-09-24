@@ -29,7 +29,6 @@ export class NavbarComponent implements OnInit {
     
   }
   ngOnInit() {
-    this.openDialog();
     this.authService.authState.subscribe((user) => {
       this.user = user;
       this.loggedIn = (user != null);
@@ -38,15 +37,12 @@ export class NavbarComponent implements OnInit {
   }
 
   openDialog(): void {
-    if (!localStorage.getItem('aboutAlreadyShown')) {
-      const dialogRef = this.dialog.open(AboutDialogComponent, {
-      });
-      dialogRef.afterClosed().subscribe(result => {
-        localStorage.setItem('aboutAlreadyShown', 'true');
-      });
-    }
+    const dialogRef = this.dialog.open(AboutDialogComponent, {
+    });
 
-    
+    dialogRef.afterClosed().subscribe(result => {
+      
+    });
   }
 
   refreshToken(): void {
@@ -79,7 +75,11 @@ export class AboutDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<AboutDialogComponent>
   ) {}
-
+  
+  startTutorial(): void {
+    this.onNoClick();
+    
+  }
   onNoClick(): void {
     this.dialogRef.close();
   }

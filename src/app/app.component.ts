@@ -8,6 +8,8 @@ import { PreferenceService } from './preference.service';
 import { GenerateService } from './generate.service';
 import { NavbarComponent } from './navbar/navbar.component'
 import { AuthPresetService } from './auth-preset.service';
+import { TourService } from 'ngx-ui-tour-md-menu';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
 
 export interface PlaceSearchCoords {
   lat: any;
@@ -21,24 +23,65 @@ export interface PlaceSearchCoords {
 })
 export class AppComponent {
   title = 'too-hot';
-  data: any;
+  data: any; 
   
   constructor(
     private apiService: ApiService,
     private preferenceService: PreferenceService,
     private locationService: LocationService,
     private generateService: GenerateService,
-    private authPresetService: AuthPresetService
+    private authPresetService: AuthPresetService,
+    private tourService: TourService
   ) { }
   
   ngOnInit() {
-    
+    this.tourService.initialize([
+    {
+      anchorId: 'search',
+      content: `Welcome to TooHot! If this is your first time, I'd recommend following this tutorial.`,
+      title: 'Welcome!',
+    },
+    {
+      anchorId: 'search',
+      content: 'Search for and choose a location or set as your current coordinates (default).',
+      title: 'Step 1',
+    },
+    {
+      anchorId: 'search',
+      content: `Click 'Gen' to generate the weather data for this location.`,
+      title: 'Step 2',
+      
+    },
+    {
+      anchorId: 'preferencesButton',
+      content: `Open the preferences editor on the top right of the screen.`,
+      title: 'Step 3',
+    },
+    {
+      anchorId: 'preferences',
+      content: `Toggle the temperature on and move the sliders around! Try multiple! Purple lined squares indicate where these settings are true.`,
+      title: 'Step 4',
+     
+    },
+    {
+      anchorId: 'preferencesButton',
+      content: `Close the preferences editor.`,
+      title: 'Step 5',
+    },
+    {
+      anchorId: 'weather',
+      content: `Open the 'Forecast Timeline' and drag the slider to see into the future!`,
+      title: 'Step 6',
+    },
+  ]);
+    this.tourService.start();
   }
 
   isDrawerOpen = false; // manage the state of the drawer
 
   toggleDrawer() {
     this.isDrawerOpen = !this.isDrawerOpen;
+    
   }
 
   preferences: any = [];
@@ -57,9 +100,4 @@ export class AppComponent {
     this.generateService.triggerEvent();
   }
 
-  eventsSubject: Subject<void> = new Subject<void>();
-
-  yourFunctionToHandleLocation(location: string) {
-    // Call your weather API here
-  }
 }

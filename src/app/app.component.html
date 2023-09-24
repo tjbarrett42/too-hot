@@ -1,15 +1,15 @@
 <div>
   <app-navbar></app-navbar>
-  <div class="overlay-container">
-    <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()"></app-search>
+  <div class="overlay-container" >
+    <app-search (placeChanged)="updateLocation($event)" (generateMapRequested)="generateResults()" tourAnchor="search"></app-search>
   </div>
   <div class="map-and-drawer">
     <div class="map-container">
-      <app-weather></app-weather>
+      <app-weather tourAnchor="weather"></app-weather>
     </div>
     
     <mat-card class="drawer" [ngClass]="{ 'drawer-open': isDrawerOpen }">
-      <button class="drawer-toggle-button" mat-raised-button color="primary" (click)="toggleDrawer()">
+      <button class="drawer-toggle-button" mat-raised-button color="primary" (click)="toggleDrawer()" tourAnchor="preferencesButton">
         <mat-icon *ngIf="!isDrawerOpen">chevron_left</mat-icon>
         <mat-icon *ngIf="isDrawerOpen">chevron_right</mat-icon>
         <mat-icon>tune</mat-icon> 
@@ -17,7 +17,9 @@
           Preference Editor (close)
         </mat-card-title>
       </button>
-      <app-preferences (preferencesChanged)="updatePreferences($event)"></app-preferences>
+      <app-preferences (preferencesChanged)="updatePreferences($event)" tourAnchor="preferences"></app-preferences>
     </mat-card>
   </div>
+  <tour-step-template></tour-step-template>
 </div>
+

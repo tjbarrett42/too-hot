@@ -31,6 +31,9 @@ import { GenerateService } from './generate.service';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from './navbar/navbar.component';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
+import { TourMatMenuModule } from 'ngx-ui-tour-md-menu';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -59,8 +62,10 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatButtonModule,
     SocialLoginModule,
     GoogleSigninButtonModule,
-    MatTooltipModule
-  
+    MatTooltipModule,
+    TourMatMenuModule,
+    MatMenuModule,
+    RouterModule
   ],
   providers: [
     PreferenceService,
