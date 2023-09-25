@@ -1,6 +1,6 @@
-# TooHot
+# FindMyForecast
 
-[too-hot.vercel.app](too-hot.vercel.app)
+[findmyforecast.vercel.app](findmyforecast.vercel.app)
 
 A forecasting application for finding the time and place of the perfect intersections of your favorite weather ranges.
 

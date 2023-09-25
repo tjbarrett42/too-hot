@@ -38,7 +38,7 @@ export class AppComponent {
     this.tourService.initialize([
     {
       anchorId: 'search',
-      content: `Welcome to TooHot! If this is your first time, I'd recommend following this tutorial.`,
+      content: `Welcome to FindMyForecast! If this is your first time, I'd recommend following this tutorial.`,
       title: 'Welcome!',
     },
     {
@@ -81,7 +81,7 @@ export class AppComponent {
     },
     {
       anchorId: 'search',
-      content: `You have completed the tutorial - enjoy using TooHot!`,
+      content: `You have completed the tutorial - enjoy using FindMyForecast!`,
       title: 'Enjoy!',
     },
     
