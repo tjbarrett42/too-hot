@@ -1,8 +1,8 @@
 # FindMyForecast
 
-https://github.com/tjbarrett42/too-hot/assets/20308686/db27fc49-f258-4709-a955-f89afef5b01c
+https://github.com/tjbarrett42/too-hot/assets/20308686/bd5837f4-7c96-42f2-b333-c63283c41364
 
-Try now at [too-hot.vercel.app](too-hot.vercel.app)!
+Try now at [findmyforecast.vercel.app](findmyforecast.vercel.app)!
 
 A forecasting application for finding the time and place of the perfect intersections of your favorite weather ranges.
 
